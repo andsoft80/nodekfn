@@ -31,6 +31,9 @@ var res = null;
 
 
 function getFileBinary(filename) {
+    if(process.platform !== 'win32'){
+        filename = filename.replace(/\\/g,"/");
+    }
     res = null;
     var data = fs.readFileSync(path.resolve(filename));
 
@@ -43,7 +46,9 @@ function getFileBinary(filename) {
 }
 
 function getFileHex(filename) {
-
+    if(process.platform !== 'win32'){
+        filename = filename.replace(/\\/g,"/");
+    }
     res = null;
     var data = fs.readFileSync(path.resolve(filename));
 
