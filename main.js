@@ -36,7 +36,7 @@ function getFileBinary(filename) {
         filename = filename.replace(/\\/g,"/");
     }
     res = null;
-    var data = fs.readFileSync(path.resolve(filename));
+    var data = fs.readFileSync((filename));
 
     res = (data.toString('binary'));
 
@@ -47,11 +47,12 @@ function getFileBinary(filename) {
 }
 
 function getFileHex(filename) {
+    console.log(process.platform);
     if(process.platform !== 'win32'){
         filename = filename.replace(/\\/g,"/");
     }
     res = null;
-    var data = fs.readFileSync(path.resolve(filename));
+    var data = fs.readFileSync((filename));
 
     res = (data.toString('hex'));
 
