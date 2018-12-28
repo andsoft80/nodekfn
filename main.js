@@ -827,6 +827,7 @@ app.get("/prep/:filename", function (request, response) {
         parcel.title = Title;
         parcel.linearrjson = lineArrJson;
         parcel.entryarr = entryArr;
+        console.log('ready');
         response.send((parcel));
         response.end();
     } else {
