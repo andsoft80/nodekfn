@@ -32,7 +32,7 @@ var res = null;
 
 function getFileBinary(filename) {
     res = null;
-    var data = fs.readFileSync(path.normalize(filename));
+    var data = fs.readFileSync(path.resolve(filename));
 
     res = (data.toString('binary'));
 
@@ -45,7 +45,7 @@ function getFileBinary(filename) {
 function getFileHex(filename) {
 
     res = null;
-    var data = fs.readFileSync(path.normalize(filename));
+    var data = fs.readFileSync(path.resolve(filename));
 
     res = (data.toString('hex'));
 
