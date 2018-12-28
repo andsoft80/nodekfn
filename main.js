@@ -4,6 +4,7 @@ var app = express();
 var bodyParser = require('body-parser');
 var aesjs = require('aes-js');
 var formidable = require('formidable');
+var path = require('path');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static('assets'));
@@ -31,7 +32,7 @@ var res = null;
 
 function getFileBinary(filename) {
     res = null;
-    var data = fs.readFileSync(filename);
+    var data = fs.readFileSync(path.normalize(filename));
 
     res = (data.toString('binary'));
 
@@ -44,7 +45,7 @@ function getFileBinary(filename) {
 function getFileHex(filename) {
 
     res = null;
-    var data = fs.readFileSync(filename);
+    var data = fs.readFileSync(path.normalize(filename));
 
     res = (data.toString('hex'));
 
