@@ -32,8 +32,8 @@ var res = null;
 
 function getFileBinary(filename) {
     console.log(process.platform);
-    if(process.platform !== 'win32'){
-        filename = filename.replace(/\\/g,"/");
+    if (process.platform !== 'win32') {
+        filename = filename.replace(/\\/g, "/");
     }
     res = null;
     var data = fs.readFileSync((filename));
@@ -48,8 +48,8 @@ function getFileBinary(filename) {
 
 function getFileHex(filename) {
     console.log(process.platform);
-    if(process.platform !== 'win32'){
-        filename = filename.replace(/\\/g,"/");
+    if (process.platform !== 'win32') {
+        filename = filename.replace(/\\/g, "/");
     }
     res = null;
     var data = fs.readFileSync((filename));
@@ -770,7 +770,13 @@ app.get("/list_down/:id", function (request, response) {
 });
 
 app.get("/getfilebin/:filename", function (request, response) {
-    fs.readFile(request.params.filename, function (error, data) {
+
+
+
+    if (process.platform !== 'win32') {
+        filename = request.params.filename.replace(/\\/g, "/");
+    }
+    fs.readFile(filename, function (error, data) {
         if (error) {
             console.log(error);
             response.write(JSON.stringify(error));
@@ -787,7 +793,10 @@ app.get("/getfilebin/:filename", function (request, response) {
 });
 
 app.get("/getfilehex/:filename", function (request, response) {
-    fs.readFile(request.params.filename, function (error, data) {
+    if (process.platform !== 'win32') {
+        filename = request.params.filename.replace(/\\/g, "/");
+    }
+    fs.readFile(filename, function (error, data) {
         if (error) {
             console.log(error);
             response.write(JSON.stringify(error));
