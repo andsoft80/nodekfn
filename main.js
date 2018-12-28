@@ -31,6 +31,7 @@ var res = null;
 
 
 function getFileBinary(filename) {
+    console.log(process.platform);
     if(process.platform !== 'win32'){
         filename = filename.replace(/\\/g,"/");
     }
