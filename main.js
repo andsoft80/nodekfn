@@ -39,7 +39,7 @@ function getFileBinary(filename) {
     var data = fs.readFileSync((filename));
 
     res = (data.toString('binary'));
-
+    console.log('bin.ready');
 
 
     return res;
@@ -55,7 +55,7 @@ function getFileHex(filename) {
     var data = fs.readFileSync((filename));
 
     res = (data.toString('hex'));
-
+    console.log('hex.ready');
 
 
     return res;
@@ -145,6 +145,15 @@ function uint8ToHexArr(arr) {
     return hex;
 }
 
+function hexArrToUint8Arr(hex) {
+    var uint8Arr = [];
+    for (var i = 0; i < hex.length; i += 2)
+    {
+        uint8Arr.push(parseInt(hex.substring(i, i + 2), 16));
+    }
+    return uint8Arr;
+}
+
 function bin2String(array) {
     var result = "";
     for (var i = 0; i < array.length; i++) {
@@ -160,12 +169,12 @@ function prepFile(playFileName) {
 //                    var u = new Uint8Array(reader.result);
     a = getFileHex(playFileName);
 
-    var result = [];
+    var result = hexArrToUint8Arr(a);
 
-    for (var i = 0; i < a.length; i += 2)
-    {
-        result.push(parseInt(a.substring(i, i + 2), 16));
-    }
+//    for (var i = 0; i < a.length; i += 2)
+//    {
+//        result.push(parseInt(a.substring(i, i + 2), 16));
+//    }
     a = [];
     var u = Uint8Array.from(result);
     //var u = Buffer.from(result);
@@ -835,7 +844,8 @@ app.get("/prep/:filename", function (request, response) {
 
         //console.log(parcel.entryarr);
 
-        response.send((parcel));
+        //response.send((parcel));
+        response.write(JSON.stringify(parcel));
         response.end();
         parcel = {};
         entryArr = [];
@@ -847,7 +857,7 @@ app.get("/prep/:filename", function (request, response) {
     }
 });
 
-app.listen(80);
+app.listen(8080);
 
 
 
