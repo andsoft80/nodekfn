@@ -274,8 +274,9 @@ function prepFile(playFileName) {
         entry.length2 = fileSize2;
         entry.offset = fileOffset;
         entry.flags = fileFlags;
-        entryArr.push(entry);
-
+        
+            entryArr.push(entry);
+        
         //console.log(JSON.stringify(entryArr));
 
 
@@ -775,6 +776,8 @@ app.get("/getfilebin/:filename", function (request, response) {
 
     if (process.platform !== 'win32') {
         filename = request.params.filename.replace(/\\/g, "/");
+    } else {
+        filename = request.params.filename
     }
     fs.readFile(filename, function (error, data) {
         if (error) {
@@ -795,6 +798,8 @@ app.get("/getfilebin/:filename", function (request, response) {
 app.get("/getfilehex/:filename", function (request, response) {
     if (process.platform !== 'win32') {
         filename = request.params.filename.replace(/\\/g, "/");
+    } else {
+        filename = request.params.filename
     }
     fs.readFile(filename, function (error, data) {
         if (error) {
@@ -826,8 +831,15 @@ app.get("/prep/:filename", function (request, response) {
         parcel.artist = Artist;
         parcel.title = Title;
         parcel.linearrjson = lineArrJson;
-        parcel.entryarr = entryArr;
-        console.log('ready');
+        entryArrCut = [];
+        for(var i=0; i<entryArr.length; i++){
+           
+            if(entryArr[i].type===1|entryArr[i].type===2){
+                entryArrCut.push(entryArr[i]);
+            }
+        }
+        parcel.entryarr = entryArrCut;
+        //console.log(parcel.entryarr);
         response.send((parcel));
         response.end();
     } else {

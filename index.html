@@ -378,7 +378,7 @@
                                 audio = document.createElement('audio');
                                 audio.setAttribute("id", "mp3");
                             }
-                            currPlayData = 'data:audio/mpeg;base64,' + btoa(entry.bindata);
+                            //currPlayData = 'data:audio/mpeg;base64,' + btoa(entry.bindata);
                             audio.src = 'data:audio/mpeg;base64,' + btoa(entry.bindata);
                             console.log('play');
                             $('#text').css({top: height, left: width, position: 'absolute'});
