@@ -430,20 +430,20 @@ function prepFile(playFileName) {
             }
         }
 
-        var p = 0;
-        for (var r = 0; r < lineArrJson.length; r++) {
-            for (var q = 0; q < lineArrJson[r].wordSplit.length; q++) {
-                lineArrJson[r].timeSplit.push(marr[p]);
-                p++;
 
-            }
-
-        }
 
 
 
     }
+    var p = 0;
+    for (var r = 0; r < lineArrJson.length; r++) {
+        for (var q = 0; q < lineArrJson[r].wordSplit.length; q++) {
+            lineArrJson[r].timeSplit.push(marr[p]);
+            p++;
 
+        }
+
+    }
     tarr = [];
     marr = [];
 
