@@ -841,11 +841,15 @@ app.get("/prep/:filename", function (request, response) {
                 entryArrCut.push(entryArr[i]);
             }
         }
-        entryArr = [];
         parcel.entryarr = entryArrCut;
+        entryArr = [];
+        entryArrCut = [];
+        lineArrJson = [];
         //console.log(parcel.entryarr);
+        
         response.send((parcel));
         response.end();
+        parcel = {};
     } else {
         response.send({"error": "format"});
         response.end();
