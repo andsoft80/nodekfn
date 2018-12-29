@@ -282,7 +282,7 @@ function prepFile(playFileName) {
 
 
     }
-    
+
     for (var p = 0; p < numFiles; p++) {
         entryArr[p].offset = entryArr[p].offset + offset;
     }
@@ -310,7 +310,7 @@ function prepFile(playFileName) {
     ;
 
     b = [];
-    
+
 
     if (entryArr[entryArr.length - 1].flags === 1) {
         bb = (readbytes(entryArr[entryArr.length - 1].offset, u, entryArr[entryArr.length - 1].length2));
@@ -328,8 +328,8 @@ function prepFile(playFileName) {
         realcont = (readbytes(entryArr[entryArr.length - 1].offset, u, entryArr[entryArr.length - 1].length2));
     }
     ;
-    
-    
+
+
 
     Title = '';
     Artist = '';
@@ -341,7 +341,12 @@ function prepFile(playFileName) {
     lineArr = [];
     lineArrJson = [];
 
-u = [];bb = [];c = [];cont = [];res = [];realcont = [];
+    u = [];
+    bb = [];
+    c = [];
+    cont = [];
+    res = [];
+    realcont = [];
     for (var i = 0; i < iniFileTextArr.length; i++) {
 
         lineEntry = {
@@ -425,12 +430,22 @@ u = [];bb = [];c = [];cont = [];res = [];realcont = [];
             }
         }
 
+        var p = 0;
+        for (var r = 0; r < lineArrJson.length; r++) {
+            for (var q = 0; q < lineArrJson[r].wordSplit.length; q++) {
+                lineArrJson[r].timeSplit.push(marr[p]);
+                p++;
+
+            }
+
+        }
 
 
 
     }
 
-
+    tarr = [];
+    marr = [];
 
     console.log(JSON.stringify(lineArrJson));
     return true;
@@ -817,14 +832,15 @@ app.get("/prep/:filename", function (request, response) {
             }
         }
         parcel.entryarr = entryArrCut;
-        entryArr = [];
-        entryArrCut = [];
-        lineArrJson = [];
+
         //console.log(parcel.entryarr);
-        
+
         response.send((parcel));
         response.end();
         parcel = {};
+        entryArr = [];
+        entryArrCut = [];
+        lineArrJson = [];
     } else {
         response.send({"error": "format"});
         response.end();
