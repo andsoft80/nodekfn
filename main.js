@@ -31,7 +31,7 @@ var res = null;
 
 
 function getFileBinary(filename) {
-    console.log(process.platform);
+    //console.log(process.platform);
     if (process.platform !== 'win32') {
         filename = filename.replace(/\\/g, "/");
     }
@@ -43,7 +43,7 @@ function getFileBinary(filename) {
 
 
     return res;
-    return res;
+
 }
 
 function getFileHex(filename) {
@@ -166,6 +166,7 @@ function prepFile(playFileName) {
     {
         result.push(parseInt(a.substring(i, i + 2), 16));
     }
+    a = [];
     var u = Uint8Array.from(result);
     //var u = Buffer.from(result);
     //var u = res;
@@ -208,7 +209,7 @@ function prepFile(playFileName) {
 
 
 
-        console.log(tag + ' ' + type + ' ' + lenval + ' ' + strval);
+        //console.log(tag + ' ' + type + ' ' + lenval + ' ' + strval);
         tryc++;
     }
     ;
@@ -274,14 +275,14 @@ function prepFile(playFileName) {
         entry.length2 = fileSize2;
         entry.offset = fileOffset;
         entry.flags = fileFlags;
-        
-            entryArr.push(entry);
-        
+
+        entryArr.push(entry);
+
         //console.log(JSON.stringify(entryArr));
 
 
     }
-
+    
     for (var p = 0; p < numFiles; p++) {
         entryArr[p].offset = entryArr[p].offset + offset;
     }
@@ -304,11 +305,12 @@ function prepFile(playFileName) {
         var bd = b.substring(entryArr[n].offset, entryArr[n].offset + entryArr[n].length1);
 
         entryArr[n].bindata = bd;
-
+        bd = [];
     }
     ;
 
-
+    b = [];
+    
 
     if (entryArr[entryArr.length - 1].flags === 1) {
         bb = (readbytes(entryArr[entryArr.length - 1].offset, u, entryArr[entryArr.length - 1].length2));
@@ -326,19 +328,20 @@ function prepFile(playFileName) {
         realcont = (readbytes(entryArr[entryArr.length - 1].offset, u, entryArr[entryArr.length - 1].length2));
     }
     ;
-
+    
+    
 
     Title = '';
     Artist = '';
 
     res = uint8ArrToString(realcont);
-    console.log(res);
+    //console.log(res);
 
     iniFileTextArr = res.split('\n');
     lineArr = [];
     lineArrJson = [];
 
-
+u = [];bb = [];c = [];cont = [];res = [];realcont = [];
     for (var i = 0; i < iniFileTextArr.length; i++) {
 
         lineEntry = {
@@ -355,7 +358,7 @@ function prepFile(playFileName) {
             p = str.indexOf('=');
             s = str.substring(p + 1, (str.length - p) * 2);
             Title = decodeURIComponent(escape(s));
-            console.log(Title);
+            //console.log(Title);
         }
 
 
@@ -406,7 +409,7 @@ function prepFile(playFileName) {
 
             lineArrJson.push(lineEntry);
 
-            console.log(str_etl);
+            //console.log(str_etl);
 
         }
         if (str.indexOf('Sync') === 0 &
@@ -452,8 +455,8 @@ function prepFile(playFileName) {
 
 
 
-    console.log(tarr);
-    console.log(marr);
+//    console.log(tarr);
+//    console.log(marr);
     console.log(JSON.stringify(lineArrJson));
     return true;
 }
@@ -832,12 +835,13 @@ app.get("/prep/:filename", function (request, response) {
         parcel.title = Title;
         parcel.linearrjson = lineArrJson;
         entryArrCut = [];
-        for(var i=0; i<entryArr.length; i++){
-           
-            if(entryArr[i].type===1|entryArr[i].type===2){
+        for (var i = 0; i < entryArr.length; i++) {//оставляем музыку и текст
+
+            if (entryArr[i].type === 1 | entryArr[i].type === 2) {
                 entryArrCut.push(entryArr[i]);
             }
         }
+        entryArr = [];
         parcel.entryarr = entryArrCut;
         //console.log(parcel.entryarr);
         response.send((parcel));
