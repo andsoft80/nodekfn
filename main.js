@@ -35,7 +35,7 @@ function getFileBinary(filename) {
     if (process.platform !== 'win32') {
         filename = filename.replace(/\\/g, "/");
     }
-    res = null;
+    var res = null;
     var data = fs.readFileSync((filename));
 
     res = (data.toString('binary'));
@@ -51,7 +51,7 @@ function getFileHex(filename) {
     if (process.platform !== 'win32') {
         filename = filename.replace(/\\/g, "/");
     }
-    res = null;
+    var res = null;
     var data = fs.readFileSync((filename));
 
     res = (data.toString('hex'));
@@ -63,7 +63,7 @@ function getFileHex(filename) {
 
 
 function readbytes(offset, input, n) {
-    arr = input.slice(offset, (offset + n));
+    var arr = input.slice(offset, (offset + n));
 
     return arr;
 }
@@ -91,7 +91,7 @@ function hexarr2a(hexx) {//for hex arr
 }
 function decimalToHex(d, padding) {
     var hex = Number(d).toString(16);
-    padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
+    var padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
 
     while (hex.length < padding) {
         hex = "0" + hex;
@@ -118,10 +118,10 @@ function bin2hex(bin)
 }
 
 function readDWord(arr, offset) {
-    b1 = parseInt(readbytes(offset, arr, 1), 16);
-    b2 = parseInt(readbytes(offset + 1, arr, 1), 16);
-    b3 = parseInt(readbytes(offset + 2, arr, 1), 16);
-    b4 = parseInt(readbytes(offset + 3, arr, 1), 16);
+    var b1 = parseInt(readbytes(offset, arr, 1), 16);
+    var b2 = parseInt(readbytes(offset + 1, arr, 1), 16);
+    var b3 = parseInt(readbytes(offset + 2, arr, 1), 16);
+    var b4 = parseInt(readbytes(offset + 3, arr, 1), 16);
 
     return b4 << 24 | b3 << 16 | b2 << 8 | b1;
 }
@@ -130,7 +130,7 @@ function hexToBase64(str) {
 }
 
 function uint8ArrToString(arr) {
-    hex = [];
+    var hex = [];
     for (i = 0; i < arr.length; i++) {
         hex.push(decimalToHex(arr[i]));
     }
@@ -138,7 +138,7 @@ function uint8ArrToString(arr) {
 }
 
 function uint8ToHexArr(arr) {
-    hex = [];
+    var hex = [];
     for (i = 0; i < arr.length; i++) {
         hex.push(decimalToHex(arr[i]));
     }
@@ -429,34 +429,9 @@ u = [];bb = [];c = [];cont = [];res = [];realcont = [];
 
 
     }
-    ////timing split
-
-    for (var i = 0; i < lineArr.length; i++) {
-        var str = lineArr[i];
-        var arr = str.split(' ').join('/').split('/');
-        for (var j = 0; j < arr.length; j++) {
-            tarr.push(arr[j]);
-        }
-        tarr[tarr.length - 1] = tarr[tarr.length - 1] + '\n';
-
-    }
 
 
 
-    var p = 0;
-    for (var r = 0; r < lineArrJson.length; r++) {
-        for (var q = 0; q < lineArrJson[r].wordSplit.length; q++) {
-            lineArrJson[r].timeSplit.push(marr[p]);
-            p++;
-
-        }
-
-    }
-
-
-
-//    console.log(tarr);
-//    console.log(marr);
     console.log(JSON.stringify(lineArrJson));
     return true;
 }
@@ -561,7 +536,7 @@ app.get("/list", function (request, response) {
 
 app.get("/listinit", function (request, response) {
 
-    json = [];
+    var json = [];
 
     var i = 0;
 
