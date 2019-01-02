@@ -58,6 +58,8 @@ footer {
 .link-menu {
   font-size: 2.2rem; 
 position: absolute;
+background: silver;
+padding-right: 5px;
 z-index: 20;}
   .link-menu:hover {
     color: #807d7d; }

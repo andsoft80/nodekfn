@@ -4,10 +4,15 @@ var app = express();
 var bodyParser = require('body-parser');
 var aesjs = require('aes-js');
 var formidable = require('formidable');
+var path = require('path');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static('assets'));
-
+app.use(express.static('images'));
+if (typeof localStorage === "undefined" || localStorage === null) {
+    var LocalStorage = require('node-localstorage').LocalStorage;
+    localStorage = new LocalStorage('./scratch');
+}
 
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
@@ -26,24 +31,31 @@ var res = null;
 
 
 function getFileBinary(filename) {
-    res = null;
-    var data = fs.readFileSync(filename);
+    //console.log(process.platform);
+    if (process.platform !== 'win32') {
+        filename = filename.replace(/\\/g, "/");
+    }
+    var res = null;
+    var data = fs.readFileSync((filename));
 
     res = (data.toString('binary'));
-
+    console.log('bin.ready');
 
 
     return res;
-    return res;
+
 }
 
 function getFileHex(filename) {
-
-    res = null;
-    var data = fs.readFileSync(filename);
+    console.log(process.platform);
+    if (process.platform !== 'win32') {
+        filename = filename.replace(/\\/g, "/");
+    }
+    var res = null;
+    var data = fs.readFileSync((filename));
 
     res = (data.toString('hex'));
-
+    console.log('hex.ready');
 
 
     return res;
@@ -51,7 +63,7 @@ function getFileHex(filename) {
 
 
 function readbytes(offset, input, n) {
-    arr = input.slice(offset, (offset + n));
+    var arr = input.slice(offset, (offset + n));
 
     return arr;
 }
@@ -79,7 +91,7 @@ function hexarr2a(hexx) {//for hex arr
 }
 function decimalToHex(d, padding) {
     var hex = Number(d).toString(16);
-    padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
+    var padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
 
     while (hex.length < padding) {
         hex = "0" + hex;
@@ -106,10 +118,10 @@ function bin2hex(bin)
 }
 
 function readDWord(arr, offset) {
-    b1 = parseInt(readbytes(offset, arr, 1), 16);
-    b2 = parseInt(readbytes(offset + 1, arr, 1), 16);
-    b3 = parseInt(readbytes(offset + 2, arr, 1), 16);
-    b4 = parseInt(readbytes(offset + 3, arr, 1), 16);
+    var b1 = parseInt(readbytes(offset, arr, 1), 16);
+    var b2 = parseInt(readbytes(offset + 1, arr, 1), 16);
+    var b3 = parseInt(readbytes(offset + 2, arr, 1), 16);
+    var b4 = parseInt(readbytes(offset + 3, arr, 1), 16);
 
     return b4 << 24 | b3 << 16 | b2 << 8 | b1;
 }
@@ -118,7 +130,7 @@ function hexToBase64(str) {
 }
 
 function uint8ArrToString(arr) {
-    hex = [];
+    var hex = [];
     for (i = 0; i < arr.length; i++) {
         hex.push(decimalToHex(arr[i]));
     }
@@ -126,11 +138,20 @@ function uint8ArrToString(arr) {
 }
 
 function uint8ToHexArr(arr) {
-    hex = [];
+    var hex = [];
     for (i = 0; i < arr.length; i++) {
         hex.push(decimalToHex(arr[i]));
     }
     return hex;
+}
+
+function hexArrToUint8Arr(hex) {
+    var uint8Arr = [];
+    for (var i = 0; i < hex.length; i += 2)
+    {
+        uint8Arr.push(parseInt(hex.substring(i, i + 2), 16));
+    }
+    return uint8Arr;
 }
 
 function bin2String(array) {
@@ -148,12 +169,13 @@ function prepFile(playFileName) {
 //                    var u = new Uint8Array(reader.result);
     a = getFileHex(playFileName);
 
-    var result = [];
+    var result = hexArrToUint8Arr(a);
 
-    for (var i = 0; i < a.length; i += 2)
-    {
-        result.push(parseInt(a.substring(i, i + 2), 16));
-    }
+//    for (var i = 0; i < a.length; i += 2)
+//    {
+//        result.push(parseInt(a.substring(i, i + 2), 16));
+//    }
+    a = [];
     var u = Uint8Array.from(result);
     //var u = Buffer.from(result);
     //var u = res;
@@ -196,7 +218,7 @@ function prepFile(playFileName) {
 
 
 
-        console.log(tag + ' ' + type + ' ' + lenval + ' ' + strval);
+        //console.log(tag + ' ' + type + ' ' + lenval + ' ' + strval);
         tryc++;
     }
     ;
@@ -262,6 +284,7 @@ function prepFile(playFileName) {
         entry.length2 = fileSize2;
         entry.offset = fileOffset;
         entry.flags = fileFlags;
+
         entryArr.push(entry);
 
         //console.log(JSON.stringify(entryArr));
@@ -291,10 +314,11 @@ function prepFile(playFileName) {
         var bd = b.substring(entryArr[n].offset, entryArr[n].offset + entryArr[n].length1);
 
         entryArr[n].bindata = bd;
-
+        bd = [];
     }
     ;
 
+    b = [];
 
 
     if (entryArr[entryArr.length - 1].flags === 1) {
@@ -315,17 +339,23 @@ function prepFile(playFileName) {
     ;
 
 
+
     Title = '';
     Artist = '';
 
     res = uint8ArrToString(realcont);
-    console.log(res);
+    //console.log(res);
 
     iniFileTextArr = res.split('\n');
     lineArr = [];
     lineArrJson = [];
 
-
+    u = [];
+    bb = [];
+    c = [];
+    cont = [];
+    res = [];
+    realcont = [];
     for (var i = 0; i < iniFileTextArr.length; i++) {
 
         lineEntry = {
@@ -342,7 +372,7 @@ function prepFile(playFileName) {
             p = str.indexOf('=');
             s = str.substring(p + 1, (str.length - p) * 2);
             Title = decodeURIComponent(escape(s));
-            console.log(Title);
+            //console.log(Title);
         }
 
 
@@ -393,7 +423,7 @@ function prepFile(playFileName) {
 
             lineArrJson.push(lineEntry);
 
-            console.log(str_etl);
+            //console.log(str_etl);
 
         }
         if (str.indexOf('Sync') === 0 &
@@ -412,21 +442,8 @@ function prepFile(playFileName) {
 
 
 
-    }
-    ////timing split
-
-    for (var i = 0; i < lineArr.length; i++) {
-        var str = lineArr[i];
-        var arr = str.split(' ').join('/').split('/');
-        for (var j = 0; j < arr.length; j++) {
-            tarr.push(arr[j]);
-        }
-        tarr[tarr.length - 1] = tarr[tarr.length - 1] + '\n';
 
     }
-
-
-
     var p = 0;
     for (var r = 0; r < lineArrJson.length; r++) {
         for (var q = 0; q < lineArrJson[r].wordSplit.length; q++) {
@@ -436,11 +453,9 @@ function prepFile(playFileName) {
         }
 
     }
+    tarr = [];
+    marr = [];
 
-
-
-    console.log(tarr);
-    console.log(marr);
     console.log(JSON.stringify(lineArrJson));
     return true;
 }
@@ -526,23 +541,26 @@ app.post("/transfer", function (req, res) {
 });
 
 app.get("/list", function (request, response) {
-    fs.readFile("list.json", function (error, data) {
-        if (error) {
-            console.log(error);
-            response.write(JSON.stringify(error));
-            response.end();
-            return;
-        }
-
-        response.write(data);
-        response.end();
-
-    });
+//    fs.readFile("list.json", function (error, data) {
+//        if (error) {
+//            console.log(error);
+//            response.write(JSON.stringify(error));
+//            response.end();
+//            return;
+//        }
+//
+//        response.write(data);
+//        response.end();
+//
+//    });
+    var pl = localStorage.getItem('playList');
+    response.write(pl);
+    response.end();
 });
 
 app.get("/listinit", function (request, response) {
 
-    json = [];
+    var json = [];
 
     var i = 0;
 
@@ -551,31 +569,40 @@ app.get("/listinit", function (request, response) {
         files.forEach(file => {
             if (file.indexOf('.') < 0) {//dir
                 var entry = {
-                    "name": "",
-                    files: []
+                    "text": "",
+                    "children": []
 
                 };
 
 
-                entry.name = file;
+                entry.text = file;
                 json.push(entry);
+
                 var strarr = fs.readdirSync("downloads/" + file);
-                    strarr.forEach(file => {
-                        if (file.indexOf('.kfn') > 0) {
-                            entry.files.push(file);
-                        }
-                    });
-                
+                strarr.forEach(file => {
+                    var entryCh = {
+                        "text": "",
+                        "children": [],
+                        "icon": "notepic_s.jpg"
+
+                    };
+                    if (file.indexOf('.kfn') > 0) {
+                        entryCh.text = file;
+                        entry.children.push(entryCh);
+                    }
+                });
+
             }
             if (file.indexOf('.kfn') > 0) {
                 var entry = {
-                    "name": "",
-                    files: []
+                    "text": "",
+                    "children": [],
+                    "icon": "notepic_s.jpg"
 
                 };
 
 
-                entry.name = file;
+                entry.text = file;
                 json.push(entry);
             }
 
@@ -600,198 +627,161 @@ function reBuildSeq(listjson) {
     return listjson;
 }
 
-app.get("/list_add/:filename", function (request, response) {
+app.post("/list_add", function (request, response) {
     var listjson = '';
     var id = 1;
-    fs.readFile("list.json", 'utf8', function (error, data) {
-        if (error) {
-            console.log(error);
-            response.write(JSON.stringify(error));
+    var pl = localStorage.getItem('playList');
+
+    listjson = JSON.parse(pl);
+    if (listjson.length > 0) {
+        id = listjson[listjson.length - 1].id + 1;
+    }
+
+    var entry = {
+        "id": "",
+        "name": "",
+        "artist": ""
+
+    };
+    for (var i = 0; i < listjson.length; i++) {
+        if (listjson[i].name === request.body.filename) {
+            response.write(JSON.stringify(listjson));
             response.end();
             return;
         }
-        listjson = JSON.parse(data);
-        if (listjson.length > 0) {
-            id = listjson[listjson.length - 1].id + 1;
-        }
+    }
 
-        var entry = {
-            "id": "",
-            "name": ""
+    entry.id = id;
+    entry.name = request.body.filename;
+    entry.artist = request.body.artist;
+    listjson.push(entry);
 
-        };
-        entry.id = id;
-        entry.name = request.params.filename;
-        listjson.push(entry);
-        fs.writeFile("list.json", JSON.stringify(listjson), 'utf8', (error) => {
-            if (error) {
-                console.log(error);
-                response.write(JSON.stringify(error));
-                response.end();
-                return;
-            }
-            console.log('The file has been saved!');
-        });
+    localStorage.setItem('playList', JSON.stringify(listjson));
+
+    response.write(JSON.stringify(listjson));
+    response.end();
 
 
-        response.write(JSON.stringify(listjson));
-        response.end();
-
-    });
 });
 
 app.get("/list_delete/:id", function (request, response) {
     var listjson = '';
 
-    fs.readFile("list.json", 'utf8', function (error, data) {
-        if (error) {
-            console.log(error);
-            response.write(JSON.stringify(error));
-            response.end();
-            return;
-        }
-        listjson = JSON.parse(data);
-        var i = 0;
-        var find = -1;
+    var pl = localStorage.getItem('playList');
+    listjson = JSON.parse(pl);
+    var i = 0;
+    var find = -1;
 
-        for (var i = 0; i < listjson.length; i++) {
+    for (var i = 0; i < listjson.length; i++) {
 
-            if (listjson[i].id.toString() === request.params.id.toString()) {
+        if (listjson[i].id.toString() === request.params.id.toString()) {
 
-                find = i;
-                break;
-            }
-            ;
+            find = i;
+            break;
         }
         ;
+    }
+    ;
 
-        if (find > -1) {
-            listjson.splice(find, 1);
-            listjson = reBuildSeq(listjson);
+    if (find > -1) {
+        listjson.splice(find, 1);
+        listjson = reBuildSeq(listjson);
 
-        }
-
-
-        fs.writeFile("list.json", JSON.stringify(listjson), 'utf8', (error) => {
-            if (error) {
-                console.log(error);
-                response.write(JSON.stringify(error));
-                response.end();
-                return;
-            }
-            console.log('The file has been saved!');
-        });
+    }
 
 
-        response.write(JSON.stringify(listjson));
-        response.end();
+    localStorage.setItem('playList', JSON.stringify(listjson));
 
-    });
+
+    response.write(JSON.stringify(listjson));
+    response.end();
+
+
 });
 
 app.get("/list_up/:id", function (request, response) {
     var listjson = '';
+    var pl = localStorage.getItem('playList');
 
-    fs.readFile("list.json", 'utf8', function (error, data) {
-        if (error) {
-            console.log(error);
-            response.write(JSON.stringify(error));
-            response.end();
-            return;
-        }
-        listjson = JSON.parse(data);
-        var i = 0;
-        var find = -1;
+    listjson = JSON.parse(pl);
+    var i = 0;
+    var find = -1;
 
-        for (var i = 0; i < listjson.length; i++) {
+    for (var i = 0; i < listjson.length; i++) {
 
-            if (listjson[i].id.toString() === request.params.id.toString()) {
+        if (listjson[i].id.toString() === request.params.id.toString()) {
 
-                find = i;
-                break;
-            }
-            ;
+            find = i;
+            break;
         }
         ;
+    }
+    ;
 
-        if (find > 0) {
-            var tmp = listjson[find];
-            listjson[find] = listjson[find - 1];
-            listjson[find - 1] = tmp;
-            listjson = reBuildSeq(listjson);
+    if (find > 0) {
+        var tmp = listjson[find];
+        listjson[find] = listjson[find - 1];
+        listjson[find - 1] = tmp;
+        listjson = reBuildSeq(listjson);
 
-        }
-
-
-        fs.writeFile("list.json", JSON.stringify(listjson), 'utf8', (err) => {
-            if (error) {
-                console.log(error);
-                response.write(JSON.stringify(error));
-                response.end();
-                return;
-            }
-            console.log('The file has been saved!');
-        });
+    }
 
 
-        response.write(JSON.stringify(listjson));
-        response.end();
+    localStorage.setItem('playList', JSON.stringify(listjson));
 
-    });
+
+    response.write(JSON.stringify(listjson));
+    response.end();
+
+
 });
 app.get("/list_down/:id", function (request, response) {
     var listjson = '';
+    var pl = localStorage.getItem('playList');
 
-    fs.readFile("list.json", 'utf8', function (error, data) {
-        if (error) {
-            console.log(error);
-            response.write(JSON.stringify(error));
-            response.end();
-            return;
-        }
-        listjson = JSON.parse(data);
-        var i = 0;
-        var find = -1;
+    listjson = JSON.parse(pl);
+    var i = 0;
+    var find = -1;
 
-        for (var i = 0; i < listjson.length; i++) {
+    for (var i = 0; i < listjson.length; i++) {
 
-            if (listjson[i].id.toString() === request.params.id.toString()) {
+        if (listjson[i].id.toString() === request.params.id.toString()) {
 
-                find = i;
-                break;
-            }
-            ;
+            find = i;
+            break;
         }
         ;
+    }
+    ;
 
-        if (find < listjson.length - 1) {
-            var tmp = listjson[find];
-            listjson[find] = listjson[find + 1];
-            listjson[find + 1] = tmp;
-            listjson = reBuildSeq(listjson);
+    if (find < listjson.length - 1) {
+        var tmp = listjson[find];
+        listjson[find] = listjson[find + 1];
+        listjson[find + 1] = tmp;
+        listjson = reBuildSeq(listjson);
 
-        }
-
-
-        fs.writeFile("list.json", JSON.stringify(listjson), 'utf8', (error) => {
-            if (error) {
-                console.log(error);
-                response.write(JSON.stringify(error));
-                response.end();
-                return;
-            }
-            console.log('The file has been saved!');
-        });
+    }
 
 
-        response.write(JSON.stringify(listjson));
-        response.end();
+    localStorage.setItem('playList', JSON.stringify(listjson));
 
-    });
+
+    response.write(JSON.stringify(listjson));
+    response.end();
+
+
 });
 
 app.get("/getfilebin/:filename", function (request, response) {
-    fs.readFile(request.params.filename, function (error, data) {
+
+
+
+    if (process.platform !== 'win32') {
+        filename = request.params.filename.replace(/\\/g, "/");
+    } else {
+        filename = request.params.filename
+    }
+    fs.readFile(filename, function (error, data) {
         if (error) {
             console.log(error);
             response.write(JSON.stringify(error));
@@ -808,7 +798,12 @@ app.get("/getfilebin/:filename", function (request, response) {
 });
 
 app.get("/getfilehex/:filename", function (request, response) {
-    fs.readFile(request.params.filename, function (error, data) {
+    if (process.platform !== 'win32') {
+        filename = request.params.filename.replace(/\\/g, "/");
+    } else {
+        filename = request.params.filename
+    }
+    fs.readFile(filename, function (error, data) {
         if (error) {
             console.log(error);
             response.write(JSON.stringify(error));
@@ -838,18 +833,31 @@ app.get("/prep/:filename", function (request, response) {
         parcel.artist = Artist;
         parcel.title = Title;
         parcel.linearrjson = lineArrJson;
-        parcel.entryarr = entryArr;
-        response.send((parcel));
+        entryArrCut = [];
+        for (var i = 0; i < entryArr.length; i++) {//оставляем музыку и текст
+
+            if (entryArr[i].type === 1 | entryArr[i].type === 2) {
+                entryArrCut.push(entryArr[i]);
+            }
+        }
+        parcel.entryarr = entryArrCut;
+
+        //console.log(parcel.entryarr);
+
+        //response.send((parcel));
+        response.write(JSON.stringify(parcel));
         response.end();
+        parcel = {};
+        entryArr = [];
+        entryArrCut = [];
+        lineArrJson = [];
     } else {
         response.send({"error": "format"});
         response.end();
     }
 });
 
-app.listen(3000);
-
-
+app.listen(8080);
 
 
 
