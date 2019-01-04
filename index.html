@@ -35,7 +35,7 @@
         <script>
             ////////////////////////////////////////////
 
-            var host = 'http://185.220.35.146:80/';
+            var host = 'http://192.168.0.28:8080/';
 
 
 
@@ -45,8 +45,8 @@
             app.controller('myCtrl', function ($scope) {
                 $scope.playList = [];
                 $scope.filter = '';
-
-
+                $scope.currId = 0;
+                $scope.noty = null;
 
 
                 $scope.reBuildSeq = function (listjson) {
@@ -251,28 +251,35 @@
                 $scope.hint = function (txt) {
 
                 }
-                $scope.play = function (fileName, artist) {
-                    noty = new Noty({
-                        type: 'info',
-                        theme: 'relax',
-                        layout: 'topRight',
-                        text: 'Песня загружается...',
-                        callbacks: {
-                            afterShow: function () {
-                                slash = '%5C';
-                                if (!artist) {
-                                    fn = 'downloads';
-                                } else {
-                                    fn = 'downloads' + slash + artist;
-                                }
+                $scope.play = function (fileName, artist, id) {
+                    $scope.currId = id;
+//                    if ($scope.noty===null) {
+                        
+                        $scope.noty = new Noty({
+                            type: 'info',
+                            theme: 'relax',
+                            layout: 'topRight',
+                            text: 'Песня загружается #'+id+'...',
+                            callbacks: {
+                                afterShow: function () {
+                                    slash = '%5C';
+                                    if (!artist) {
+                                        fn = 'downloads';
+                                    } else {
+                                        fn = 'downloads' + slash + artist;
+                                    }
 
-                                fn = fn + slash + fileName;
-                                $('#jsi-nav').data('sidebar').pull();
-                                $().JqueryFunction(fn);
-                                noty.close();
-                            },
-                        }
-                    }).show();
+                                    fn = fn + slash + fileName;
+                                    $('#jsi-nav').data('sidebar').pull();
+                                    $().JqueryFunction(fn);
+                                    $scope.noty.close();
+                                },
+                            }
+                        }).show();
+//                    }
+//                    else{
+//                        $scope.noty.show();
+//                    }
 
 
 
@@ -308,7 +315,7 @@
                     $.ajax({
                         type: "GET",
                         async: false,
-                        url: host+"listinit",
+                        url: host + "listinit",
                         success: function (data) {
 //                           alert(data);
 
@@ -415,7 +422,7 @@
                 $.ajax({
                     type: "GET",
                     async: false,
-                    url: host+"getfilebin/" + filename,
+                    url: host + "getfilebin/" + filename,
                     success: function (data) {
                         res = data;
                     }
@@ -428,7 +435,7 @@
                 $.ajax({
                     type: "GET",
                     async: false,
-                    url: host+"getfilehex/" + filename,
+                    url: host + "getfilehex/" + filename,
                     success: function (data) {
                         res = data;
                     }
@@ -528,7 +535,9 @@
 
 
                             var audio = document.getElementById('mp3');
-                            if (!audio) {
+                            
+                            if (audio===null) {
+                                
                                 audio = document.createElement('audio');
                                 audio.setAttribute("id", "mp3");
                             }
@@ -543,8 +552,26 @@
                             var width = ($('#text').parent().width() / 2) - ($('#text').width() / 2);
                             var height = ($('#text').parent().height() / 2) - ($('#text').height() / 2);
                             $('#text').css({top: height, left: width, position: 'absolute'});
-                            audio.addEventListener("play", function () {
+                            audio.addEventListener("ended", function () {
+                                
+                                var controllerElement = document.querySelector('body');
+                                var controllerScope = angular.element(controllerElement).scope();
+                                var id = controllerScope.currId;
+                                pl = controllerScope.playList;
+                                if (id === pl.length) {
+                                    id = 1;
+                                } else {
+                                    id++
+                                }
+                                for (var i = 0; i < pl.length; i++) {
+                                    if (pl[i].id === id) {
+                                        controllerScope.play(pl[i].name, pl[i].artist, id);
+                                        
+                                        break;
 
+                                    }
+                                }
+                                document.getElementById('workplace').removeChild(audio);
                             });
                             function buildText(timeSec) {
 
@@ -901,6 +928,7 @@
 
             table {
                 width: 320px;
+                /*table-layout: fixed;*/
                 margin: 10px;
                 font: 14px Arial;
                 text-align: left;
@@ -934,6 +962,11 @@
                 /*                background: silver;
                                 padding: 5px;*/
                 /*margin: 10px;*/
+            }
+            TD DIV {
+                overflow:hidden; /* Добавляем полосы прокрутки */
+                width: 150px; /* Ширина элемента */
+
             }
 
             #closeBtn {
@@ -1021,14 +1054,14 @@
                     </thead>
                     <tbody >
                         <tr ng-repeat="song in playList| filter:{name:filter}">
-                            <td>{{song.id}}</td>
-                            <td>{{song.name}}</td>
+                            <td width='10'>{{song.id}}</td>
+                            <td><div>{{song.name}}</div></td>
                             <td>{{song.artist}}</td>
                             <td>  
                                 <a href='#'><i class="fa fa-arrow-up" aria-hidden="true" title='Поднять вверх' ng-click="list_up(song.id)"></i></a>
                                 <a href='#'><i class="fa fa-arrow-down" aria-hidden="true" title='Опустить вниз' ng-click="list_down(song.id)"></i></a>
                                 <a href='#'><i class="fa fa-trash" aria-hidden="true" title='Удалить из списка' ng-click="list_delete(song.id)"></i></a>
-                                <a href='#'><i class="fa fa-play" aria-hidden="true" title='Начать петь' ng-click="play(song.name, song.artist)"></i></a>
+                                <a href='#'><i class="fa fa-play" aria-hidden="true" title='Начать петь' ng-click="play(song.name, song.artist, song.id);"></i></a>
                             </td>
 
                         </tr>
