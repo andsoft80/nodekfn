@@ -7,7 +7,7 @@ var formidable = require('formidable');
 var path = require('path');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(express.static('assets'));
+app.use(express.static('ass'));
 app.use(express.static('images'));
 if (typeof localStorage === "undefined" || localStorage === null) {
     var LocalStorage = require('node-localstorage').LocalStorage;
