@@ -781,6 +781,7 @@ app.get("/getfilebin/:filename", function (request, response) {
     } else {
         filename = request.params.filename
     }
+    console.log(filename);
     fs.readFile(filename, function (error, data) {
         if (error) {
             console.log(error);
@@ -803,6 +804,7 @@ app.get("/getfilehex/:filename", function (request, response) {
     } else {
         filename = request.params.filename
     }
+    console.log(filename);
     fs.readFile(filename, function (error, data) {
         if (error) {
             console.log(error);
@@ -857,7 +859,7 @@ app.get("/prep/:filename", function (request, response) {
     }
 });
 
-app.listen(8080);
+app.listen(80);
 
 
 
