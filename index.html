@@ -70,6 +70,7 @@
                 $scope.clear = function () {
                     $scope.playList = [];
                     localStorage.setItem('playList', JSON.stringify($scope.playList));
+                     $scope.currId = 0;
 
                 }
                 $scope.list_add = function (filename, artist) {
