@@ -29,6 +29,7 @@
         <link href="lib/themes/light.css" rel="stylesheet">
         <link href="lib/themes/relax.css" rel="stylesheet">
         <script src="lib/noty.js" type="text/javascript"></script>
+        <!--<script src="prepob.js" type="text/javascript"></script>-->
         <script src="prepob.js" type="text/javascript"></script>
 
         <title>Караоке плеер</title>
@@ -47,7 +48,7 @@
                 $scope.filter = '';
                 $scope.currId = 0;
                 $scope.noty = null;
-
+                $scope.self = false;
 
                 $scope.reBuildSeq = function (listjson) {
 
@@ -66,7 +67,11 @@
 
                 }
                 ;
+                $scope.clear = function () {
+                    $scope.playList = [];
+                    localStorage.setItem('playList', JSON.stringify($scope.playList));
 
+                }
                 $scope.list_add = function (filename, artist) {
                     var listjson = [];
                     var id = 1;
@@ -251,31 +256,37 @@
                 $scope.hint = function (txt) {
 
                 }
+                $scope.selfPlay = function (fileName, artist, id) {
+                    $scope.self = true;
+                    $scope.play(fileName, artist, id);
+
+
+                }
                 $scope.play = function (fileName, artist, id) {
                     $scope.currId = id;
 //                    if ($scope.noty===null) {
-                        
-                        $scope.noty = new Noty({
-                            type: 'info',
-                            theme: 'relax',
-                            layout: 'topRight',
-                            text: 'Песня загружается #'+id+'...',
-                            callbacks: {
-                                afterShow: function () {
-                                    slash = '%5C';
-                                    if (!artist) {
-                                        fn = 'downloads';
-                                    } else {
-                                        fn = 'downloads' + slash + artist;
-                                    }
 
-                                    fn = fn + slash + fileName;
-                                    $('#jsi-nav').data('sidebar').pull();
-                                    $().JqueryFunction(fn);
-                                    $scope.noty.close();
-                                },
-                            }
-                        }).show();
+                    $scope.noty = new Noty({
+                        type: 'info',
+                        theme: 'relax',
+                        layout: 'topRight',
+                        text: 'Песня загружается #' + id + '...',
+                        callbacks: {
+                            afterShow: function () {
+                                slash = '%5C';
+                                if (!artist) {
+                                    fn = 'downloads';
+                                } else {
+                                    fn = 'downloads' + slash + artist;
+                                }
+
+                                fn = fn + slash + fileName;
+                                $('#jsi-nav').data('sidebar').pull();
+                                $().JqueryFunction(fn);
+                                $scope.noty.close();
+                            },
+                        }
+                    }).show();
 //                    }
 //                    else{
 //                        $scope.noty.show();
@@ -345,8 +356,11 @@
 
                         }
                     });
+                    var mh = document.body.clientHeight;
+
                     $("#dialog").dialog({
                         width: 500,
+                        maxHeight: mh - 4,
                         position: 'top',
                         dialogClass: "alert",
                         title: "КАТАЛОГ",
@@ -535,12 +549,14 @@
 
 
                             var audio = document.getElementById('mp3');
-                            
-                            if (audio===null) {
-                                
-                                audio = document.createElement('audio');
-                                audio.setAttribute("id", "mp3");
+
+                            if (audio !== null) {
+                                document.getElementById('workplace').removeChild(audio);
                             }
+
+                            audio = document.createElement('audio');
+                            audio.setAttribute("id", "mp3");
+                            //}
                             //currPlayData = 'data:audio/mpeg;base64,' + btoa(entry.bindata);
                             audio.src = 'data:audio/mpeg;base64,' + btoa(entry.bindata);
                             console.log('play');
@@ -553,9 +569,11 @@
                             var height = ($('#text').parent().height() / 2) - ($('#text').height() / 2);
                             $('#text').css({top: height, left: width, position: 'absolute'});
                             audio.addEventListener("ended", function () {
-                                
+
                                 var controllerElement = document.querySelector('body');
                                 var controllerScope = angular.element(controllerElement).scope();
+
+
                                 var id = controllerScope.currId;
                                 pl = controllerScope.playList;
                                 if (id === pl.length) {
@@ -566,7 +584,7 @@
                                 for (var i = 0; i < pl.length; i++) {
                                     if (pl[i].id === id) {
                                         controllerScope.play(pl[i].name, pl[i].artist, id);
-                                        
+
                                         break;
 
                                     }
@@ -927,8 +945,9 @@
             }
 
             table {
-                width: 320px;
-                /*table-layout: fixed;*/
+                width: 100%;
+                table-layout: fixed;
+
                 margin: 10px;
                 font: 14px Arial;
                 text-align: left;
@@ -947,6 +966,7 @@
             table td {
                 padding: 5px;
                 font-family: "Roboto", sans-serif;
+
             }
 
             table tbody tr:nth-child(odd){
@@ -963,11 +983,11 @@
                                 padding: 5px;*/
                 /*margin: 10px;*/
             }
-            TD DIV {
-                overflow:hidden; /* Добавляем полосы прокрутки */
-                width: 150px; /* Ширина элемента */
+/*            TD DIV {
+                overflow:hidden;  Добавляем полосы прокрутки 
+                width: 150px;  Ширина элемента 
 
-            }
+            }*/
 
             #closeBtn {
 
@@ -995,6 +1015,14 @@
                 top: 300px;
 
                 z-index: 50;
+            }
+            #twrap{
+                width: 320px;
+                max-width:320px;
+                display: inline-block;
+            }
+            #song{
+                font-weight: bold;
             }
 
         </style>
@@ -1035,39 +1063,61 @@
 
 
 
-                <a href='' style='font-family: "Roboto", sans-serif; margin: 10px; color : white;' ng-click="addSong();"><i class="fa fa-plus" aria-hidden="true" ></i> ДОБАВИТЬ ПЕСНЮ</a>
+                <a href='' style='font-family: "Roboto", sans-serif; margin: 10px; color : white;' ng-click="addSong();"><i class="fa fa-plus" aria-hidden="true" ></i> ДОБАВИТЬ</a>
 
-                <form id = 'transferForm' enctype="multipart/form-data" method="post">
+                <a href='' style='font-family: "Roboto", sans-serif; margin: 10px; color : white;' ng-click="clear();"><i class="fa fa-trash" aria-hidden="true" ></i> ОЧИСТИТЬ</a>
+
+<!--                <form id = 'transferForm' enctype="multipart/form-data" method="post">
                     <p><input id = 'selectFile' type="file" name="f" accept=".kfn" onchange = '$("#sendFile").click();' hidden>
                         <input id = 'sendFile' type="submit" value="Отправить" hidden></p>
-                </form>                 
+                </form>                 -->
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Название песни</th>
-                            <th>Артист</th>
-                            <th width = 30px>Управление</th>
+                <div id = 'twrap'>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th >
+                                    #<br>
+                                    Название<br>
+                                    Артист<br>
+                                    Управление
+                                </th>
+                                <!--                                <th style = 'width:45%'>Название песни</th>
+                                                                <th style = 'width:25%'>Артист</th>
+                                                                <th style = 'width:20%'>Управление</th>-->
 
-                        </tr>
-                    </thead>
-                    <tbody >
-                        <tr ng-repeat="song in playList| filter:{name:filter}">
-                            <td width='10'>{{song.id}}</td>
-                            <td><div>{{song.name}}</div></td>
-                            <td>{{song.artist}}</td>
-                            <td>  
-                                <a href='#'><i class="fa fa-arrow-up" aria-hidden="true" title='Поднять вверх' ng-click="list_up(song.id)"></i></a>
-                                <a href='#'><i class="fa fa-arrow-down" aria-hidden="true" title='Опустить вниз' ng-click="list_down(song.id)"></i></a>
-                                <a href='#'><i class="fa fa-trash" aria-hidden="true" title='Удалить из списка' ng-click="list_delete(song.id)"></i></a>
-                                <a href='#'><i class="fa fa-play" aria-hidden="true" title='Начать петь' ng-click="play(song.name, song.artist, song.id);"></i></a>
-                            </td>
+                            </tr>
+                        </thead>
+                        <tbody >
+                            <tr ng-repeat="song in playList| filter:{name:filter}">
+                                <td >
+                                    <div>#{{song.id}}</div>
+                                    <div id="song">{{song.name}}</div>
+                                    <div>{{song.artist}}</div>
+                                    <div>
+                                        <a href='#' ng-click="list_up(song.id)" style='margin-right: 15px'><i class="fa fa-arrow-up" aria-hidden="true" title='Поднять вверх' ></i> Вверх</a>
+                                        <a href='#' ng-click="list_down(song.id)" style='margin-right: 15px'><i class="fa fa-arrow-down" aria-hidden="true" title='Опустить вниз'></i> Вниз</a>
+                                        <a href='#' ng-click="list_delete(song.id)" style='margin-right: 15px'><i class="fa fa-trash" aria-hidden="true" title='Удалить из списка' ></i> Удалить</a>
+                                        <a href='#' ng-click="play(song.name, song.artist, song.id)"><i class="fa fa-play" aria-hidden="true" title='Начать петь' ></i> Играть</a>
+                                    </div>
 
-                        </tr>
 
-                    </tbody>
-                </table>
+
+                                </td>
+<!--                                <td ><div>{{song.name}}</div></td>
+                                <td >{{song.artist}}</td>
+                                <td >  
+                                    <a href='#'><i class="fa fa-arrow-up" aria-hidden="true" title='Поднять вверх' ng-click="list_up(song.id)"></i></a>
+                                    <a href='#'><i class="fa fa-arrow-down" aria-hidden="true" title='Опустить вниз' ng-click="list_down(song.id)"></i></a>
+                                    <a href='#'><i class="fa fa-trash" aria-hidden="true" title='Удалить из списка' ng-click="list_delete(song.id)"></i></a>
+                                    <a href='#'><i class="fa fa-play" aria-hidden="true" title='Начать петь' ng-click="play(song.name, song.artist, song.id);self = true"></i></a>
+                                </td>-->
+
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>    
             </nav>
             <div id='dialog'>
                 <div id = 'selectSong' >

@@ -8,6 +8,7 @@ html, body {
     left: 0;
     width: 350px;
     height: 100%; 
+    overflow: auto;
     }
 
 .jsc-sidebar-content {
