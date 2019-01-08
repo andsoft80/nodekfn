@@ -566,7 +566,7 @@
                             console.log('play');
                             $('#text').css({top: height, left: width, position: 'absolute'});
                             audio.setAttribute('controls', 'controls');
-                            audio.setAttribute('preload', 'auto');
+                            audio.setAttribute('preload', 'none');
                             duration = audio.duration;
                             document.getElementById('workplace').appendChild(audio);
                             var width = ($('#text').parent().width() / 2) - ($('#text').width() / 2);
