@@ -506,7 +506,7 @@
                     //bg////////////////////////
 
                     if (!prepFile(playFileName)) {
-                        alert('Не верныйформат файла!');
+                        alert('Неверный формат файла!');
                         return;
                     }
                     var txt = document.getElementById('text');
@@ -983,11 +983,11 @@
                                 padding: 5px;*/
                 /*margin: 10px;*/
             }
-/*            TD DIV {
-                overflow:hidden;  Добавляем полосы прокрутки 
-                width: 150px;  Ширина элемента 
-
-            }*/
+            /*            TD DIV {
+                            overflow:hidden;  Добавляем полосы прокрутки 
+                            width: 150px;  Ширина элемента 
+            
+                        }*/
 
             #closeBtn {
 
@@ -1023,6 +1023,11 @@
             }
             #song{
                 font-weight: bold;
+            }
+            #bage{
+                float: right;
+                background-color: red;
+                color: white;
             }
 
         </style>
@@ -1067,10 +1072,10 @@
 
                 <a href='' style='font-family: "Roboto", sans-serif; margin: 10px; color : white;' ng-click="clear();"><i class="fa fa-trash" aria-hidden="true" ></i> ОЧИСТИТЬ</a>
 
-<!--                <form id = 'transferForm' enctype="multipart/form-data" method="post">
-                    <p><input id = 'selectFile' type="file" name="f" accept=".kfn" onchange = '$("#sendFile").click();' hidden>
-                        <input id = 'sendFile' type="submit" value="Отправить" hidden></p>
-                </form>                 -->
+                <!--                <form id = 'transferForm' enctype="multipart/form-data" method="post">
+                                    <p><input id = 'selectFile' type="file" name="f" accept=".kfn" onchange = '$("#sendFile").click();' hidden>
+                                        <input id = 'sendFile' type="submit" value="Отправить" hidden></p>
+                                </form>                 -->
 
                 <div id = 'twrap'>
                     <table>
@@ -1091,27 +1096,31 @@
                         <tbody >
                             <tr ng-repeat="song in playList| filter:{name:filter}">
                                 <td >
-                                    <div>#{{song.id}}</div>
-                                    <div id="song">{{song.name}}</div>
-                                    <div>{{song.artist}}</div>
                                     <div>
-                                        <a href='#' ng-click="list_up(song.id)" style='margin-right: 15px'><i class="fa fa-arrow-up" aria-hidden="true" title='Поднять вверх' ></i> Вверх</a>
-                                        <a href='#' ng-click="list_down(song.id)" style='margin-right: 15px'><i class="fa fa-arrow-down" aria-hidden="true" title='Опустить вниз'></i> Вниз</a>
-                                        <a href='#' ng-click="list_delete(song.id)" style='margin-right: 15px'><i class="fa fa-trash" aria-hidden="true" title='Удалить из списка' ></i> Удалить</a>
-                                        <a href='#' ng-click="play(song.name, song.artist, song.id)"><i class="fa fa-play" aria-hidden="true" title='Начать петь' ></i> Играть</a>
+                                        <div id="bage" ng-if='song.id===currId'>
+                                            играет...
+                                        </div>
+                                        <div># {{song.id}}</div>
+                                        <div id="song">{{song.name}}</div>
+                                        <div>{{song.artist}}</div>
+                                        <div>
+                                            <a href='#' ng-click="list_up(song.id)" style='margin-right: 15px'><i class="fa fa-arrow-up" aria-hidden="true" title='Поднять вверх' ></i> Вверх</a>
+                                            <a href='#' ng-click="list_down(song.id)" style='margin-right: 15px'><i class="fa fa-arrow-down" aria-hidden="true" title='Опустить вниз'></i> Вниз</a>
+                                            <a href='#' ng-click="list_delete(song.id)" style='margin-right: 15px'><i class="fa fa-trash" aria-hidden="true" title='Удалить из списка' ></i> Удалить</a>
+                                            <a href='#' ng-click="play(song.name, song.artist, song.id)"><i class="fa fa-play" aria-hidden="true" title='Начать петь' ></i> Играть</a>
+                                        </div>
                                     </div>
 
 
-
                                 </td>
-<!--                                <td ><div>{{song.name}}</div></td>
-                                <td >{{song.artist}}</td>
-                                <td >  
-                                    <a href='#'><i class="fa fa-arrow-up" aria-hidden="true" title='Поднять вверх' ng-click="list_up(song.id)"></i></a>
-                                    <a href='#'><i class="fa fa-arrow-down" aria-hidden="true" title='Опустить вниз' ng-click="list_down(song.id)"></i></a>
-                                    <a href='#'><i class="fa fa-trash" aria-hidden="true" title='Удалить из списка' ng-click="list_delete(song.id)"></i></a>
-                                    <a href='#'><i class="fa fa-play" aria-hidden="true" title='Начать петь' ng-click="play(song.name, song.artist, song.id);self = true"></i></a>
-                                </td>-->
+                                <!--                                <td ><div>{{song.name}}</div></td>
+                                                                <td >{{song.artist}}</td>
+                                                                <td >  
+                                                                    <a href='#'><i class="fa fa-arrow-up" aria-hidden="true" title='Поднять вверх' ng-click="list_up(song.id)"></i></a>
+                                                                    <a href='#'><i class="fa fa-arrow-down" aria-hidden="true" title='Опустить вниз' ng-click="list_down(song.id)"></i></a>
+                                                                    <a href='#'><i class="fa fa-trash" aria-hidden="true" title='Удалить из списка' ng-click="list_delete(song.id)"></i></a>
+                                                                    <a href='#'><i class="fa fa-play" aria-hidden="true" title='Начать петь' ng-click="play(song.name, song.artist, song.id);self = true"></i></a>
+                                                                </td>-->
 
                             </tr>
 
