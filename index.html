@@ -116,6 +116,7 @@
                 ;
 
                 $scope.list_delete = function (id) {
+                    $scope.currId = 0;
                     var listjson = '';
 
                     var pl = localStorage.getItem('playList');
