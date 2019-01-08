@@ -153,6 +153,7 @@
                 ;
 
                 $scope.list_up = function (id) {
+                    $scope.currId = 0;
                     var listjson = '';
                     var pl = localStorage.getItem('playList');
 
@@ -191,6 +192,7 @@
                 ;
 
                 $scope.list_down = function (id) {
+                    $scope.currId = 0;
                     var listjson = '';
                     var pl = localStorage.getItem('playList');
 
