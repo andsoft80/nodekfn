@@ -13,6 +13,23 @@ if (typeof localStorage === "undefined" || localStorage === null) {
     var LocalStorage = require('node-localstorage').LocalStorage;
     localStorage = new LocalStorage('./scratch');
 }
+var bcrypt = require('bcryptjs');
+var salt = bcrypt.genSaltSync(10);
+
+var mysql = require('mysql');
+
+var con = mysql.createConnection({
+    host: "185.220.35.146",
+    user: "user",
+    password: "user",
+    database: "karplay"
+});
+
+con.connect(function (err) {
+    if (err)
+        throw err;
+    console.log("Connected!");
+});
 
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +72,7 @@ function getFileHex(filename) {
     var data = fs.readFileSync((filename));
 
     res = (data.toString('hex'));
-    
+
 
 
     return res;
@@ -184,14 +201,14 @@ function check(playFileName) {
         }
         //tag = uint8ArrToString(readbytes(offset, u, 4));
         tag = hex2a(readbytes(offset, a, 8));
-        
+
         offset = offset + 8;
         type = hexToUint8Arr(readbytes(offset, a, 2))[0];
         offset++;
         offset++;
         strval = '';
         if (type == '2') {
-            
+
             lenval = hexToUint8Arr(readbytes(offset, a, 8));
 
             offset = offset + 8;
@@ -680,6 +697,56 @@ function reBuildSeq(listjson) {
     }
     return listjson;
 }
+app.post("/adduser", function (request, response) {
+
+    var email = request.body.email;
+    var name = request.body.name;
+    var pwd = request.body.pwd;
+
+
+    var hash = bcrypt.hashSync(pwd, salt);
+    var sql = "insert into users (email, name, pwd) values ('" + email + "','" + name + "','" + hash + "')";
+    con.query(sql, function (err, result) {
+        if (err)
+            throw err;
+
+        response.write(JSON.stringify(result));
+        response.end();
+    });
+
+
+});
+
+app.post("/checkuser", function (request, response) {
+    var parcel = {"auth": ""};
+    var email = request.body.email;
+    var pwd = request.body.pwd;
+    var sql = "select * from users where email = '" + email + "'";
+    con.query(sql, function (err, result) {
+        if (err)
+            throw err;
+
+        if (result.length === 0) {
+            parcel.auth = 'notusr';
+        } else {
+            var hash = result[0].pwd;
+            if (bcrypt.compareSync(pwd, hash)) {
+                parcel.auth = 'ok';
+            } else {
+                parcel.auth = 'notpass';
+            }
+        }
+        response.write(JSON.stringify(parcel));
+        response.end();
+    });
+
+});
+
+app.post("/getcoins", function (request, response) {
+
+
+});
+
 
 app.post("/list_add", function (request, response) {
     var listjson = '';
