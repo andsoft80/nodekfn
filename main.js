@@ -47,7 +47,7 @@ function getFileBinary(filename) {
 }
 
 function getFileHex(filename) {
-    console.log(process.platform);
+    console.log(filename);
     if (process.platform !== 'win32') {
         filename = filename.replace(/\\/g, "/");
     }
@@ -55,7 +55,7 @@ function getFileHex(filename) {
     var data = fs.readFileSync((filename));
 
     res = (data.toString('hex'));
-    console.log('hex.ready');
+    
 
 
     return res;
@@ -154,6 +154,15 @@ function hexArrToUint8Arr(hex) {
     return uint8Arr;
 }
 
+function hexToUint8Arr(hex) {
+    var uint8Arr = [];
+    for (var i = 0; i < hex.length; i += 2)
+    {
+        uint8Arr.push(parseInt(hex.substring(i, i + 2), 16));
+    }
+    return uint8Arr;
+}
+
 function bin2String(array) {
     var result = "";
     for (var i = 0; i < array.length; i++) {
@@ -161,7 +170,52 @@ function bin2String(array) {
     }
     return result;
 }
+function check(playFileName) {
+    var a = getFileHex(playFileName);
 
+    //header FLID strval - ключ AES для ///////////////////
+    offset = 8;
+    tag = '';
+    tryc = 0;
+    while (tag !== 'ENDH') {
+        if (tryc > 20) {
+
+            return false;
+        }
+        //tag = uint8ArrToString(readbytes(offset, u, 4));
+        tag = hex2a(readbytes(offset, a, 8));
+        
+        offset = offset + 8;
+        type = hexToUint8Arr(readbytes(offset, a, 2))[0];
+        offset++;
+        offset++;
+        strval = '';
+        if (type == '2') {
+            
+            lenval = hexToUint8Arr(readbytes(offset, a, 8));
+
+            offset = offset + 8;
+
+            strval = hex2a(readbytes(offset, a, lenval[0] * 2));
+
+            if (tag == 'FLID') {
+                key = (readbytes(offset, a, lenval[0] * 2));
+
+            }
+            offset = offset + lenval[0] * 2;
+        } else {
+            lenval = (readbytes(offset, a, 8));
+            offset = offset + 8;
+        }
+
+
+
+        //console.log(tag + ' ' + type + ' ' + lenval + ' ' + strval+ ' ' + key);
+        tryc++;
+    }
+    ;
+    return true;
+}
 function prepFile(playFileName) {
     tarr = [];
     marr = [];
@@ -859,7 +913,50 @@ app.get("/prep/:filename", function (request, response) {
     }
 });
 
-app.listen(80);
+app.get("/check", function (request, response) {
+    var fileList = [];
+    fs.readdir("downloads", (err, files) => {
+
+        files.forEach(file => {
+
+            if (file.indexOf('.') < 0) {//dir
+
+                var strarr = fs.readdirSync("downloads/" + file);
+                var artist = file;
+                strarr.forEach(file => {
+
+                    if (file.indexOf('.kfn') > 0) {
+                        if (!check("downloads/" + artist + '/' + file)) {
+                            fs.rename("downloads/" + artist + '/' + file, "downloads/" + 'badFormat' + '/' + file, function (err) {});
+                            fileList.push("downloads/" + artist + '/' + file);
+
+                        }
+                    }
+                });
+
+            }
+            if (file.indexOf('.kfn') > 0) {
+                if (!check("downloads/" + file)) {
+                    fs.rename("downloads/" + file, "downloads/" + 'badFormat' + '/' + file, function (err) {});
+                    fileList.push("downloads/" + file);
+
+                }
+            }
+
+
+        });
+
+
+
+    });
+
+    response.send(JSON.stringify(fileList));
+    response.end();
+
+});
+
+
+app.listen(8080);
 
 
 
