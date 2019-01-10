@@ -13,9 +13,12 @@ if (typeof localStorage === "undefined" || localStorage === null) {
     var LocalStorage = require('node-localstorage').LocalStorage;
     localStorage = new LocalStorage('./scratch');
 }
+
+var session = require('express-session');
+var MySQLStore = require('express-mysql-session')(session);
 var bcrypt = require('bcryptjs');
 var salt = bcrypt.genSaltSync(10);
-
+var secret = 'death666';
 var mysql = require('mysql');
 
 var con = mysql.createConnection({
@@ -30,7 +33,22 @@ con.connect(function (err) {
         throw err;
     console.log("Connected!");
 });
-
+var mailer = require("nodemailer");
+var smtpTransport = mailer.createTransport({
+    service: "Gmail",
+    auth: {
+        user: "andsoft80@gmail.com",
+        pass: "Professional1"
+    }
+});
+var sessionStore = new MySQLStore({}/* session store options */, con);
+app.use(session({
+    key: 'karplay',
+    secret: 'death666',
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false
+}));
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
 var reader = null;
@@ -721,6 +739,7 @@ app.post("/checkuser", function (request, response) {
     var parcel = {"auth": ""};
     var email = request.body.email;
     var pwd = request.body.pwd;
+
     var sql = "select * from users where email = '" + email + "'";
     con.query(sql, function (err, result) {
         if (err)
@@ -732,6 +751,9 @@ app.post("/checkuser", function (request, response) {
             var hash = result[0].pwd;
             if (bcrypt.compareSync(pwd, hash)) {
                 parcel.auth = 'ok';
+                parcel.name = result[0].name;
+                parcel.signature = bcrypt.hashSync(secret + result[0].email, salt);
+                request.session.user = result[0].email;
             } else {
                 parcel.auth = 'notpass';
             }
@@ -742,8 +764,56 @@ app.post("/checkuser", function (request, response) {
 
 });
 
-app.post("/getcoins", function (request, response) {
+app.post("/recover", function (request, response) {
+    var parcel = {};
+    var email = request.body.email;
+    var newPwd = 'temppass' + Math.floor(Math.random() * 1000);
 
+    var sql = "select * from users where email = '" + email + "'";
+    con.query(sql, function (err, result) {
+        if (err)
+            throw err;
+
+        if (result.length === 0) {
+            parcel.auth = 'notusr';
+        } else {
+            var mail = {
+                from: "Karplay(not reply)",
+                to: email,
+                subject: "Восстановление пароля",
+                text: "Ваш новый пароль : " + newPwd,
+
+            };
+
+            smtpTransport.sendMail(mail, function (error, res) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    var sql = "update users  set pwd ='"+bcrypt.hashSync(newPwd, salt)+"' where email = '" + email + "'";
+                    con.query(sql, function (err, result) {
+                        if (err)
+                            throw err;
+                    });
+                }
+
+                smtpTransport.close();
+            });
+
+            parcel.auth = 'ok';
+
+
+
+        }
+        response.write(JSON.stringify(parcel));
+        response.end();
+    });
+
+});
+
+app.post("/getcoins", function (request, response) {
+    var curruser = request.session.user;
+    response.write(JSON.stringify(curruser));
+    response.end();
 
 });
 

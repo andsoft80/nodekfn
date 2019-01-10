@@ -31,7 +31,8 @@
         <script src="lib/noty.js" type="text/javascript"></script>
         <!--<script src="prepob.js" type="text/javascript"></script>-->
         <script src="prepob.js" type="text/javascript"></script>
-
+        <link href="jquery.sweet-dropdown.min.css" rel="stylesheet" type="text/css"/>
+        <script src="jquery.sweet-dropdown.min.js" type="text/javascript"></script>
         <title>Караоке плеер</title>
         <script>
             ////////////////////////////////////////////
@@ -70,7 +71,7 @@
                 $scope.clear = function () {
                     $scope.playList = [];
                     localStorage.setItem('playList', JSON.stringify($scope.playList));
-                     $scope.currId = 0;
+                    $scope.currId = 0;
 
                 }
                 $scope.list_add = function (filename, artist) {
@@ -466,6 +467,77 @@
                     addFiles(playFileName)
                 };
             })(jQuery);
+
+            function login() {
+                $("#loginDialog").dialog({
+                    width: 500,
+                    position: 'top',
+                    dialogClass: "alert",
+                    title: "Авторизация",
+                    buttons: [
+                        {
+                            text: "OK",
+                            click: function () {
+                                var parcel = {};
+                                parcel.email = $('#usr_email').val();
+                                parcel.pwd = $('#usr_pwd').val();
+                                $.ajax({
+                                    type: "post",
+                                    data: parcel,
+//                                    async: false,
+                                    url: host + "checkuser",
+                                    success: function (data) {
+
+                                        var parcel = JSON.parse(data);
+                                        if (parcel.auth === 'ok') {
+
+                                            $("#loginDialog").dialog('close');
+                                            $('#amu').text(parcel.name);
+                                            $('#amu').prop('data-dropdown','#logon');
+                                        } else {
+                                            if (parcel.auth === 'notusr') {
+                                                alert('Такого пользователя не существует!');
+                                            } else {
+                                                alert('Пароль не подходит!');
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        },
+                        {
+                            text: "Отмена",
+                            click: function () {
+                                $("#loginDialog").dialog('close');
+                            }
+                        }
+                    ]
+                });
+            }
+
+            function recoverPass() {
+                var parcel = {};
+                parcel.email = $('#usr_email').val();
+                
+                $.ajax({
+                    type: "post",
+                    data: parcel,
+//                                    async: false,
+                    url: host + "recover",
+                    success: function (data) {
+
+                        var parcel = JSON.parse(data);
+                        if (parcel.auth === 'ok') {
+
+                            alert('Пароль отправлен на указанную почту...');
+                        } else {
+                            if (parcel.auth === 'notusr') {
+                                alert('Такого пользователя не существует!');
+                            } 
+                        }
+                    }
+                });
+            }
             function addFiles(playFileName) {
 
                 function filePlay(playFileName) {
@@ -817,6 +889,8 @@
 
                 });
 
+
+
             }
 
 
@@ -980,7 +1054,7 @@
             table tbody tr:nth-child(even){ 
                 background: #f2f6f8;
             }
-            a{
+            #am{
                 color: #464646;
                 text-decoration: none;
                 /*                background: silver;
@@ -1009,8 +1083,8 @@
 
 
             }
-            #dialog {
-
+            #loginDialog {
+                font-family: "Roboto", sans-serif;
             }     
             #wait {
 
@@ -1033,7 +1107,18 @@
                 background-color: red;
                 color: white;
             }
+            #user{
+                position: relative;
+                /*left: 500px;*/
+                float: right;
 
+            }
+            #user #amu{
+                color: #464646;
+                font-size: 30px;
+                background: silver;
+                padding:  10px;
+            }
         </style>
 
     </head>
@@ -1049,9 +1134,29 @@
 
                 <nav >
                     <!--                    <a href="#" class="icon-menu link-menu jsc-sidebar-trigger">ПЛЕЙЛИСТ</a>-->
-                    <a href="" class="icon-menu link-menu " ng-click="sidebarTrigger()">ПЛЕЙЛИСТ</a>
+                    <a id='am' href="" class="icon-menu link-menu " ng-click="sidebarTrigger()">ПЛЕЙЛИСТ</a>
 
                 </nav>
+                <div id="user" >
+                    <a id = 'amu' href='#' ng-click="loginMenu()" data-dropdown="#basic"><i class="fa fa-user" aria-hidden="true" title='' ></i> АВТОРИЗАЦИЯ</a>
+                    <div class="dropdown-menu dropdown-anchor-top-left dropdown-has-anchor" id="basic">
+                        <ul>
+                            <li><a href="#" onClick = 'login();'>Войти</a></li>
+                            <li><a href="#">Регистрация</a></li>
+                            <!--                            <li class="divider"></li>
+                                                        <li><a href="#">Item 3</a></li>-->
+                        </ul>
+                    </div>
+                    <div class="dropdown-menu dropdown-anchor-top-left dropdown-has-anchor" id="logon">
+                        <ul>
+                            <li><a href="#" onClick = 'logout();'>Выйти</a></li>
+                            
+                            <!--                            <li class="divider"></li>
+                                                        <li><a href="#">Item 3</a></li>-->
+                        </ul>
+                    </div>                    
+                </div>
+
                 <!--<div id="wait"><img src="http://68.183.69.229:3000/wait.gif"></div>-->
                 <p id="text">                
                 </p>
@@ -1098,10 +1203,12 @@
                             </tr>
                         </thead>
                         <tbody >
-                            <tr ng-repeat="song in playList| filter:{name:filter}">
+                            <tr ng-repeat="song in playList| filter:{
+                                        name:filter
+                                    }">
                                 <td >
                                     <div>
-                                        <div id="bage" ng-if='song.id===currId'>
+                                        <div id="bage" ng-if='song.id === currId'>
                                             играет...
                                         </div>
                                         <div># {{song.id}}</div>
@@ -1139,6 +1246,20 @@
                 </div>
 
             </div>
+            <div id='loginDialog'>
+                <form id='loginForm'>
+                    <label for="uname"><b>Эл.почта</b></label>
+                    <input type="email"  name="uname" required id="usr_email">
+
+                    <label for="psw"><b>Пароль</b></label>
+                    <input type="password"  name="psw" required id="usr_pwd">
+
+                    <a href="#" onClick = 'recoverPass();'>Восстановить пароль</a>
+
+                </form>
+
+            </div>
+
 
 
             <!--            <img id="image"/>-->
@@ -1176,6 +1297,7 @@
 //                        e.preventDefault();
 //                        $('#jsi-nav').data('sidebar').pull();
                     });
+
         </script>
 
 
