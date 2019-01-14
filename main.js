@@ -49,6 +49,36 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
+
+var redis = require('redis');
+app.redisClient = redis.createClient('6379', '185.220.35.146');
+var kue = require('kue');
+
+
+
+var jobs = kue.createQueue({
+    redis: {
+        createClientFactory: function(){
+            return app.redisClient;
+        }
+    }
+});
+
+
+//function newJob (){
+// var job = jobs.create('new_job');
+// job.save();
+//}
+//
+//jobs.process('new_job', function (job, done){
+// console.log('Job', job.id, 'is done');
+// done && done();
+//});
+//
+//setInterval(newJob, 3000);
+
+kue.app.listen(3000);
+
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
 var reader = null;
@@ -1006,15 +1036,11 @@ app.get("/list_down/:id", function (request, response) {
 
 });
 
-app.get("/getfilebin/:filename", function (request, response) {
+function transferBinFile(filename,response) {
 
 
 
-    if (process.platform !== 'win32') {
-        filename = request.params.filename.replace(/\\/g, "/");
-    } else {
-        filename = request.params.filename
-    }
+
     console.log(filename);
     fs.readFile(filename, function (error, data) {
         if (error) {
@@ -1030,14 +1056,14 @@ app.get("/getfilebin/:filename", function (request, response) {
         response.end();
 
     });
-});
+    
+}
 
-app.get("/getfilehex/:filename", function (request, response) {
-    if (process.platform !== 'win32') {
-        filename = request.params.filename.replace(/\\/g, "/");
-    } else {
-        filename = request.params.filename
-    }
+function transferHexFile(filename,response) {
+
+
+
+
     console.log(filename);
     fs.readFile(filename, function (error, data) {
         if (error) {
@@ -1053,6 +1079,35 @@ app.get("/getfilehex/:filename", function (request, response) {
         response.end();
 
     });
+    
+}
+
+
+
+app.get("/getfilebin/:filename", function (request, response) {
+    if (process.platform !== 'win32') {
+        filename = request.params.filename.replace(/\\/g, "/");
+    } else {
+        filename = request.params.filename
+    }
+
+     transferBinFile(filename,response);
+
+  
+   
+});
+
+app.get("/getfilehex/:filename", function (request, response) {
+    if (process.platform !== 'win32') {
+        filename = request.params.filename.replace(/\\/g, "/");
+    } else {
+        filename = request.params.filename
+    }
+
+     transferHexFile(filename, response);
+
+      
+    
 });
 
 app.get("/prep/:filename", function (request, response) {
