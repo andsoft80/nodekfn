@@ -754,6 +754,7 @@ app.post("/checkuser", function (request, response) {
                 parcel.name = result[0].name;
                 parcel.signature = bcrypt.hashSync(secret + result[0].email, salt);
                 request.session.user = result[0].email;
+                request.session.name = result[0].name;
             } else {
                 parcel.auth = 'notpass';
             }
@@ -789,7 +790,7 @@ app.post("/recover", function (request, response) {
                 if (error) {
                     console.log(error);
                 } else {
-                    var sql = "update users  set pwd ='"+bcrypt.hashSync(newPwd, salt)+"' where email = '" + email + "'";
+                    var sql = "update users  set pwd ='" + bcrypt.hashSync(newPwd, salt) + "' where email = '" + email + "'";
                     con.query(sql, function (err, result) {
                         if (err)
                             throw err;
@@ -812,7 +813,49 @@ app.post("/recover", function (request, response) {
 
 app.post("/getcoins", function (request, response) {
     var curruser = request.session.user;
-    response.write(JSON.stringify(curruser));
+    var parcel = {};
+    if (typeof curruser !== 'undefined') {
+
+        var sql = "select * from users where email = '" + curruser + "'";
+        con.query(sql, function (err, result) {
+            if (err)
+                throw err;
+
+            if (result[0].coins) {
+                parcel.coins = result[0].coins;
+
+            } else {
+                parcel.coins = 0;
+
+            }
+            response.write(JSON.stringify(parcel));
+            response.end();
+        });
+    }
+
+
+});
+
+app.post("/getauth", function (request, response) {
+    var parcel = {};
+    var curruser = request.session.user;
+    if (typeof curruser !== 'undefined') {
+        parcel.email = request.session.user;
+        parcel.name = request.session.name;
+    } else {
+        parcel.email = 'empty';
+        parcel.name = 'empty';
+    }
+    response.write(JSON.stringify(parcel));
+    response.end();
+
+});
+
+app.post("/logout", function (request, response) {
+    if (request.session) {
+        request.session.destroy(function () {});
+    }
+    response.write(JSON.stringify('session destroy'));
     response.end();
 
 });

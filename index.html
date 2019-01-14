@@ -50,6 +50,7 @@
                 $scope.currId = 0;
                 $scope.noty = null;
                 $scope.self = false;
+                $scope.coins = 0;
 
                 $scope.reBuildSeq = function (listjson) {
 
@@ -490,10 +491,9 @@
 
                                         var parcel = JSON.parse(data);
                                         if (parcel.auth === 'ok') {
-
                                             $("#loginDialog").dialog('close');
-                                            $('#amu').text(parcel.name);
-                                            $('#amu').prop('data-dropdown','#logon');
+                                            afterLogin($('#usr_email').val(), parcel.name);
+
                                         } else {
                                             if (parcel.auth === 'notusr') {
                                                 alert('Такого пользователя не существует!');
@@ -518,7 +518,7 @@
             function recoverPass() {
                 var parcel = {};
                 parcel.email = $('#usr_email').val();
-                
+
                 $.ajax({
                     type: "post",
                     data: parcel,
@@ -533,10 +533,63 @@
                         } else {
                             if (parcel.auth === 'notusr') {
                                 alert('Такого пользователя не существует!');
-                            } 
+                            }
                         }
                     }
                 });
+            }
+            function getCoins() {
+                var coins = 0;
+                $.ajax({
+                    type: "post",
+                    async: false,
+                    url: host + "getcoins",
+                    success: function (data) {
+                        var parcel = JSON.parse(data);
+                        coins = parcel.coins;
+                    }
+                });
+                return coins;
+            }
+            function logOut() {
+                $.ajax({
+                    type: "post",
+                    //                                    async: false,
+                    url: host + "logout",
+                    success: function (data) {
+                        afterLogout();
+
+                    }
+                });
+            }
+            function getAuth() {
+                $.ajax({
+                    type: "post",
+                    //                                    async: false,
+                    url: host + "getauth",
+                    success: function (data) {
+                        var parcel = JSON.parse(data);
+                        if (parcel.email !== 'empty') {
+                            afterLogin(parcel.email, parcel.name);
+                        } else {
+                            afterLogout();
+                        }
+                    }
+                });
+            }
+            function afterLogin(email, name) {
+                var controllerElement = document.querySelector('body');
+                var controllerScope = angular.element(controllerElement).scope();
+                controllerScope.coins = getCoins();
+                $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + name + ' Счет: '+getCoins()+' монет');
+
+                $('#basic').html($('#logon').html());
+                controllerScope.$apply();
+               
+            }
+            function afterLogout() {
+                $('#basic').html($('#login').html());
+                $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> АВТОРИЗАЦИЯ');
             }
             function addFiles(playFileName) {
 
@@ -849,6 +902,7 @@
             }////конец главной функции      
             ;
             function load() {
+                getAuth();
                 //$('#progressb').hide();
                 var img = document.getElementById('image');
                 var n = Math.floor(Math.random() * (10) + 1) / 1;
@@ -1138,21 +1192,27 @@
 
                 </nav>
                 <div id="user" >
-                    <a id = 'amu' href='#' ng-click="loginMenu()" data-dropdown="#basic"><i class="fa fa-user" aria-hidden="true" title='' ></i> АВТОРИЗАЦИЯ</a>
+                    <a id = 'amu' href='#' ng-click="loginMenu()" data-dropdown="#basic"><i class="fa fa-user" aria-hidden="true"></i> АВТОРИЗАЦИЯ</a>
                     <div class="dropdown-menu dropdown-anchor-top-left dropdown-has-anchor" id="basic">
                         <ul>
                             <li><a href="#" onClick = 'login();'>Войти</a></li>
-                            <li><a href="#">Регистрация</a></li>
+                            <li><a href="#" onClick = 'getCoins();'>Регистрация</a></li>
+                            <!--                            <li class="divider"></li>
+                                                        <li><a href="#">Item 3</a></li>-->
+                        </ul>
+                    </div>
+                    <div class="dropdown-menu dropdown-anchor-top-left dropdown-has-anchor" id="login">
+                        <ul>
+                            <li><a href="#" onClick = 'login();'>Войти</a></li>
+                            <li><a href="#" onClick = 'getCoins();'>Регистрация</a></li>
                             <!--                            <li class="divider"></li>
                                                         <li><a href="#">Item 3</a></li>-->
                         </ul>
                     </div>
                     <div class="dropdown-menu dropdown-anchor-top-left dropdown-has-anchor" id="logon">
                         <ul>
-                            <li><a href="#" onClick = 'logout();'>Выйти</a></li>
-                            
-                            <!--                            <li class="divider"></li>
-                                                        <li><a href="#">Item 3</a></li>-->
+                            <li><a href="#" onClick = 'logOut();'>Выйти</a></li>
+
                         </ul>
                     </div>                    
                 </div>
