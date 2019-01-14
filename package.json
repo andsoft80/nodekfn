@@ -11,6 +11,7 @@
     "author": "ands6ft",
     "contributors": [],
     "dependencies": {
+        "cluster": "0.7.7",
         "redis": "2.8.0",
         "kue": "0.11.6",
         "nodemailer": "5.1.0",

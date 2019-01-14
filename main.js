@@ -50,6 +50,8 @@ app.use(session({
     saveUninitialized: false
 }));
 
+
+
 var redis = require('redis');
 app.redisClient = redis.createClient('6379', '185.220.35.146');
 var kue = require('kue');
@@ -58,23 +60,35 @@ var kue = require('kue');
 
 var jobs = kue.createQueue({
     redis: {
-        createClientFactory: function(){
-            return app.redisClient;
-        }
+//        createClientFactory: function(){
+//            return app.redisClient;
+//        }
+        port: 6379,
+        host: '185.220.35.146'
     }
 });
 
 
-//function newJob (){
-// var job = jobs.create('new_job');
-// job.save();
+//function newJob() {
+//    var job = jobs.create('new_job');
+//    job.save();
 //}
-//
-//jobs.process('new_job', function (job, done){
-// console.log('Job', job.id, 'is done');
-// done && done();
-//});
-//
+
+jobs.on('job enqueue', function (id, type) {
+    console.log('Job %s got queued of type %s', id, type);
+
+}).on('job complete', function (id, result) {
+    kue.Job.get(id, function (err, job) {
+        if (err)
+            return;
+        job.remove(function (err) {
+            if (err)
+                throw err;
+            console.log('removed completed job #%d', job.id);
+        });
+    });
+});
+
 //setInterval(newJob, 3000);
 
 kue.app.listen(3000);
@@ -1036,7 +1050,7 @@ app.get("/list_down/:id", function (request, response) {
 
 });
 
-function transferBinFile(filename,response) {
+function transferBinFile(filename, response, done) {
 
 
 
@@ -1054,12 +1068,13 @@ function transferBinFile(filename,response) {
 
         response.write(data.toString('binary'));
         response.end();
+        done();
 
     });
-    
+
 }
 
-function transferHexFile(filename,response) {
+function transferHexFile(filename, response, done) {
 
 
 
@@ -1077,9 +1092,10 @@ function transferHexFile(filename,response) {
 
         response.write(data.toString('hex'));
         response.end();
+        done();
 
     });
-    
+
 }
 
 
@@ -1090,11 +1106,18 @@ app.get("/getfilebin/:filename", function (request, response) {
     } else {
         filename = request.params.filename
     }
+    var job = jobs.create('new_job');
+    job.save();
+    jobs.process('new_job', function (job, done) {
 
-     transferBinFile(filename,response);
+        transferBinFile(filename, response, done);
+        console.log('Job', job.id, 'is done');
+        done && done();
+    });
 
-  
-   
+
+
+
 });
 
 app.get("/getfilehex/:filename", function (request, response) {
@@ -1103,11 +1126,17 @@ app.get("/getfilehex/:filename", function (request, response) {
     } else {
         filename = request.params.filename
     }
+    var job = jobs.create('new_job');
+    job.save();
+    jobs.process('new_job', function (job, done) {
 
-     transferHexFile(filename, response);
+        transferHexFile(filename, response, done);
+        console.log('Job', job.id, 'is done');
+        done && done();
+    });
 
-      
-    
+
+
 });
 
 app.get("/prep/:filename", function (request, response) {
