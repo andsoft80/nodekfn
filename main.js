@@ -68,6 +68,33 @@ var jobs = kue.createQueue({
     }
 });
 
+function newJob(name) {
+    name = name || 'Default_Name';
+    var job = jobs.create('new job', {
+        name: name
+    });
+
+    job
+            .on('complete', function () {
+                console.log('Job', job.id, 'with name', job.data.name, 'is done');
+            })
+            .on('failed', function () {
+                console.log('Job', job.id, 'with name', job.data.name, 'has failed');
+            })
+
+    job.save();
+}
+
+//jobs.process('new job', function (job, done) {
+//    /* carry out all the job function here */
+//    done && done();
+//});
+
+
+//setInterval(function (){
+//  newJob('Send_Email');
+//}, 3000);
+
 
 //function newJob() {
 //    var job = jobs.create('new_job');
@@ -1097,43 +1124,73 @@ function transferHexFile(filename, response, done) {
     });
 
 }
+var responses = {};
+jobs.process("new_job", function (job, done) {
+    console.log('bin');
+    var filename = job.data.filename;
+    console.log(filename);
+    fs.readFile(filename, function (error, data) {
+        if (error) {
+            console.log(error);
+            responses[job.data.res_id].write(JSON.stringify(error));
+            responses[job.data.res_id].end();
+            return;
+        }
 
+        //response.set({'Content-Type': 'application/octet-stream'});
 
+        responses[job.data.res_id].write(data.toString('binary'));
+        responses[job.data.res_id].end();
+        delete responses[job.data.res_id];
+        console.log('Job', job.id, 'is done');
+        done && done();
 
+    });
 
+});
+
+jobs.process('new_job_hex', function (job, done) {
+    console.log('hex');
+    var filename = job.data.filename;
+    console.log(filename);
+    fs.readFile(filename, function (error, data) {
+        if (error) {
+            console.log(error);
+            responses[job.data.res_id].write(JSON.stringify(error));
+            responses[job.data.res_id].end();
+            return;
+        }
+
+        //response.set({'Content-Type': 'application/octet-stream'});
+
+        responses[job.data.res_id].write(data.toString('hex'));
+        responses[job.data.res_id].end();
+        delete responses[job.data.res_id];
+        console.log('Job', job.id, 'is done');
+        done && done();
+
+    });
+
+});
+
+function newJobBin(res, filename) {
+    var id = ''+Math.random();
+    
+    var job = jobs.create("new_job", {res_id:id, filename: filename});
+    job.save();
+     responses[id] = res;
+}
 
 app.get("/getfilebin/:filename", function (request, response) {
     if (process.platform !== 'win32') {
         filename = request.params.filename.replace(/\\/g, "/");
     } else {
-        filename = request.params.filename
+        filename = request.params.filename;
     }
 
-    var job = jobs.create('new_job', {response: response, filename: filename});
-    job.save();
+    newJobBin(response, filename);
 
-    jobs.process('new_job', function (job, done) {
-        console.log('bin');
-        var filename = job.data.filename;
-        console.log(filename);
-        fs.readFile(filename, function (error, data) {
-            if (error) {
-                console.log(error);
-                response.write(JSON.stringify(error));
-                response.end();
-                return;
-            }
 
-            //response.set({'Content-Type': 'application/octet-stream'});
-
-            job.data.response.write(data.toString('binary'));
-            job.data.response.end();
-            console.log('Job', job.id, 'is done');
-            done && done();
-
-        });
-
-    });
 
 
 
@@ -1143,36 +1200,16 @@ app.get("/getfilebin/:filename", function (request, response) {
 });
 
 app.get("/getfilehex/:filename", function (request, response) {
+    var id = ''+Math.random();
     if (process.platform !== 'win32') {
         filename = request.params.filename.replace(/\\/g, "/");
     } else {
-        filename = request.params.filename
+        filename = request.params.filename;
     }
-    var job = jobs.create('new_job_hex', {response: response, filename: filename});
+    var job = jobs.create('new_job_hex', {res_id:id, filename: filename});
     job.save();
+    responses[id] = response;
 
-    jobs.process('new_job_hex', function (job, done) {
-        console.log('hex');
-        var filename = job.data.filename;
-        console.log(filename);
-        fs.readFile(filename, function (error, data) {
-            if (error) {
-                console.log(error);
-                response.write(JSON.stringify(error));
-                response.end();
-                return;
-            }
-
-            //response.set({'Content-Type': 'application/octet-stream'});
-
-            job.data.response.write(data.toString('hex'));
-            job.data.response.end();
-            console.log('Job', job.id, 'is done');
-            done && done();
-
-        });
-
-    });
 
 
 
