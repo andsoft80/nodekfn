@@ -41,19 +41,31 @@ var smtpTransport = mailer.createTransport({
         pass: "Professional1"
     }
 });
-var sessionStore = new MySQLStore({}/* session store options */, con);
+
+
+
+var sessionStore = new MySQLStore({
+    
+    clearExpired: true,
+    // How frequently expired sessions will be cleared; milliseconds:
+    checkExpirationInterval: 20000000,
+    // The maximum age of a valid session; milliseconds:
+    expiration: 86400000
+}/* session store options */, con);
+
 app.use(session({
     key: 'karplay',
     secret: 'death666',
     store: sessionStore,
     resave: false,
     saveUninitialized: false
+
 }));
 
 
 
-var redis = require('redis');
-app.redisClient = redis.createClient('6379', '185.220.35.146');
+//var redis = require('redis');
+//app.redisClient = redis.createClient('6379', '185.220.35.146');
 var kue = require('kue');
 
 
