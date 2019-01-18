@@ -1100,20 +1100,42 @@ function transferHexFile(filename, response, done) {
 
 
 
+
+
 app.get("/getfilebin/:filename", function (request, response) {
     if (process.platform !== 'win32') {
         filename = request.params.filename.replace(/\\/g, "/");
     } else {
         filename = request.params.filename
     }
-    var job = jobs.create('new_job');
-    job.save();
-    jobs.process('new_job', function (job, done) {
 
-        transferBinFile(filename, response, done);
-        console.log('Job', job.id, 'is done');
-        done && done();
+    var job = jobs.create('new_job', {response: response, filename: filename});
+    job.save();
+
+    jobs.process('new_job', function (job, done) {
+        console.log('bin');
+        var filename = job.data.filename;
+        console.log(filename);
+        fs.readFile(filename, function (error, data) {
+            if (error) {
+                console.log(error);
+                response.write(JSON.stringify(error));
+                response.end();
+                return;
+            }
+
+            //response.set({'Content-Type': 'application/octet-stream'});
+
+            job.data.response.write(data.toString('binary'));
+            job.data.response.end();
+            console.log('Job', job.id, 'is done');
+            done && done();
+
+        });
+
     });
+
+
 
 
 
@@ -1126,13 +1148,30 @@ app.get("/getfilehex/:filename", function (request, response) {
     } else {
         filename = request.params.filename
     }
-    var job = jobs.create('new_job');
+    var job = jobs.create('new_job_hex', {response: response, filename: filename});
     job.save();
-    jobs.process('new_job', function (job, done) {
 
-        transferHexFile(filename, response, done);
-        console.log('Job', job.id, 'is done');
-        done && done();
+    jobs.process('new_job_hex', function (job, done) {
+        console.log('hex');
+        var filename = job.data.filename;
+        console.log(filename);
+        fs.readFile(filename, function (error, data) {
+            if (error) {
+                console.log(error);
+                response.write(JSON.stringify(error));
+                response.end();
+                return;
+            }
+
+            //response.set({'Content-Type': 'application/octet-stream'});
+
+            job.data.response.write(data.toString('hex'));
+            job.data.response.end();
+            console.log('Job', job.id, 'is done');
+            done && done();
+
+        });
+
     });
 
 
