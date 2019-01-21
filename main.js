@@ -21,18 +21,51 @@ var salt = bcrypt.genSaltSync(10);
 var secret = 'death666';
 var mysql = require('mysql');
 
+
 var con = mysql.createConnection({
     host: "185.220.35.146",
     user: "user",
     password: "user",
     database: "karplay"
 });
-
 con.connect(function (err) {
     if (err)
         throw err;
     console.log("Connected!");
 });
+var mySqlConnect = function () {
+    con.on('error', function (err) {
+
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+
+
+
+            console.log("MySQL lost connection. Reconnect...");
+
+            con = mysql.createConnection({
+                host: "185.220.35.146",
+                user: "user",
+                password: "user",
+                database: "karplay"
+            });
+            con.connect(function (err) {
+                if (err)
+                    throw err;
+                console.log("Connected!");
+            });
+            mySqlConnect();
+        }
+
+
+
+    });
+};
+mySqlConnect();
+//con.connect(function (err) {
+//    if (err)
+//        throw err;
+//    console.log("Connected!");
+//});
 var mailer = require("nodemailer");
 var smtpTransport = mailer.createTransport({
     service: "Gmail",
@@ -45,7 +78,7 @@ var smtpTransport = mailer.createTransport({
 
 
 var sessionStore = new MySQLStore({
-    
+
     clearExpired: true,
     // How frequently expired sessions will be cleared; milliseconds:
     checkExpirationInterval: 20000000,
@@ -1186,11 +1219,11 @@ jobs.process('new_job_hex', function (job, done) {
 });
 
 function newJobBin(res, filename) {
-    var id = ''+Math.random();
-    
-    var job = jobs.create("new_job", {res_id:id, filename: filename});
+    var id = '' + Math.random();
+
+    var job = jobs.create("new_job", {res_id: id, filename: filename});
     job.save();
-     responses[id] = res;
+    responses[id] = res;
 }
 
 app.get("/getfilebin/:filename", function (request, response) {
@@ -1212,13 +1245,13 @@ app.get("/getfilebin/:filename", function (request, response) {
 });
 
 app.get("/getfilehex/:filename", function (request, response) {
-    var id = ''+Math.random();
+    var id = '' + Math.random();
     if (process.platform !== 'win32') {
         filename = request.params.filename.replace(/\\/g, "/");
     } else {
         filename = request.params.filename;
     }
-    var job = jobs.create('new_job_hex', {res_id:id, filename: filename});
+    var job = jobs.create('new_job_hex', {res_id: id, filename: filename});
     job.save();
     responses[id] = response;
 
@@ -1308,7 +1341,7 @@ app.get("/check", function (request, response) {
 });
 
 
-app.listen(80);
+app.listen(8080);
 
 
 
