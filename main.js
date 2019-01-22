@@ -21,7 +21,7 @@ var salt = bcrypt.genSaltSync(10);
 var secret = 'death666';
 var mysql = require('mysql');
 
-var redisHost = '185.220.35.146';
+var redisHost = 'localhost';
 var mySqlHost = '185.220.35.146';
 
 
@@ -1349,7 +1349,7 @@ app.get("/check", function (request, response) {
 });
 
 
-app.listen(80);
+app.listen(8080);
 
 
 

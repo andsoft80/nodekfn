@@ -37,7 +37,7 @@
         <script>
             ////////////////////////////////////////////
 
-            var host = 'http://kakar.ru/';
+            var host = 'http://localhost:8080/';
 
 
 
@@ -437,6 +437,8 @@
 //            var tarr = [];
 //            var marr = [];
             var currPlayData = null;
+            
+            var currUserEmail = null;
             function getFileBinary(filename) {
                 var res = null;
                 $.ajax({
@@ -625,9 +627,11 @@
                     success: function (data) {
                         var parcel = JSON.parse(data);
                         if (parcel.email !== 'empty') {
+                            
                             afterLogin(parcel.email, parcel.name);
                         } else {
                             afterLogout();
+                            
                         }
                     }
                 });
@@ -639,13 +643,27 @@
                 $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + name + ' Счет: ' + getCoins() + ' монет');
 
                 $('#basic').html($('#logon').html());
+                currUserEmail = email;
                 controllerScope.$apply();
 
             }
             function afterLogout() {
                 $('#basic').html($('#login').html());
                 $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> АВТОРИЗАЦИЯ');
+                currUserEmail = null;
             }
+            
+            
+            function buyCoins(){
+                if(currUserEmail){
+                    alert(currUserEmail);
+                }
+
+            }
+            
+            
+            
+            
             function addFiles(playFileName) {
 
                 function filePlay(playFileName) {
@@ -1267,6 +1285,7 @@
                     </div>
                     <div class="dropdown-menu dropdown-anchor-top-left dropdown-has-anchor" id="logon">
                         <ul>
+                            <li><a href="#" onClick = 'buyCoins();'>Купить монеты</a></li>
                             <li><a href="#" onClick = 'logOut();'>Выйти</a></li>
 
                         </ul>
