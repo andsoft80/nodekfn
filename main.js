@@ -21,9 +21,12 @@ var salt = bcrypt.genSaltSync(10);
 var secret = 'death666';
 var mysql = require('mysql');
 
+var redisHost = '185.220.35.146';
+var mySqlHost = '185.220.35.146';
+
 
 var con = mysql.createConnection({
-    host: "185.220.35.146",
+    host: mySqlHost,
     user: "user",
     password: "user",
     database: "karplay"
@@ -43,7 +46,7 @@ var mySqlConnect = function () {
             console.log("MySQL lost connection. Reconnect...");
 
             con = mysql.createConnection({
-                host: "185.220.35.146",
+                host: mySqlHost,
                 user: "user",
                 password: "user",
                 database: "karplay"
@@ -109,7 +112,7 @@ var jobs = kue.createQueue({
 //            return app.redisClient;
 //        }
         port: 6379,
-        host: '185.220.35.146'
+        host: redisHost
     }
 });
 
@@ -836,15 +839,20 @@ app.post("/adduser", function (request, response) {
     var email = request.body.email;
     var name = request.body.name;
     var pwd = request.body.pwd;
-
+    parcel = {};
 
     var hash = bcrypt.hashSync(pwd, salt);
     var sql = "insert into users (email, name, pwd) values ('" + email + "','" + name + "','" + hash + "')";
     con.query(sql, function (err, result) {
-        if (err)
-            throw err;
+        if (err) {
+            parcel.err = err;
 
-        response.write(JSON.stringify(result));
+        }
+        else{
+            parcel.auth = 'ok';
+        }
+
+        response.write(JSON.stringify(parcel));
         response.end();
     });
 

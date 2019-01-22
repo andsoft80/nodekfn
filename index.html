@@ -37,7 +37,7 @@
         <script>
             ////////////////////////////////////////////
 
-            var host = 'http://kakar.ru/';
+            var host = 'http://185.220.35.146/';
 
 
 
@@ -471,7 +471,7 @@
 
             function registration() {
 
-                $("#loginDialog").dialog({
+                $("#regDialog").dialog({
                     width: 500,
                     position: 'top',
                     dialogClass: "alert",
@@ -481,9 +481,14 @@
                             text: "OK",
                             click: function () {
                                 var parcel = {};
-                                parcel.email = $('#usr_email').val();
-                                parcel.pwd = $('#usr_pwd').val();
-                                parcel.name = $('#usr_name').val();
+                                parcel.email = $('#usr_email_r').val();
+                                parcel.pwd = $('#usr_pwd_r').val();
+                                parcel.name = $('#usr_name_r').val();
+                                parcel.pwd_r = $('#usr_pwd_r_r').val();
+                                if (parcel.pwd_r !== parcel.pwd) {
+                                    alert('Указанные пароли не совпадают!');
+                                    return;
+                                }
                                 $.ajax({
                                     type: "post",
                                     data: parcel,
@@ -497,7 +502,11 @@
                                             alert('Пользователь добавлен!');
 
                                         } else {
-                                            alert('Что-то пошло не так. Попробуйте еще раз...');
+                                            if (parcel.err.code === 'ER_DUP_ENTRY') {
+                                                alert('Ошибка: Такой пользователь уже существует!');
+                                            } else {
+                                                alert('Ошибка: ' + JSON.stringify(parcel.err));
+                                            }
 
                                         }
                                     }
@@ -952,8 +961,9 @@
                 //$('#progressb').hide();
                 var img = document.getElementById('image');
                 var n = Math.floor(Math.random() * (10) + 1) / 1;
-                var bindata = getFileBinary('images%5C' + n + '.jpg');
-                img.src = 'data:image/jpeg;base64,' + btoa(bindata);
+                //var bindata = getFileBinary('images%5C' + n + '.jpg');
+                //img.src = 'data:image/jpeg;base64,' + btoa(bindata);
+                img.src = n + '.jpg'
 //                var vid = document.getElementById('video');
 //                var bindata = getFileBinary('images%5C1.webm');
 //                vid.src = 'data:video/webm;base64,' + btoa(bindata);
@@ -1369,13 +1379,16 @@
             <div id='regDialog'>
                 <form id='regForm'>
                     <label for="name"><b>Ваше имя</b></label>
-                    <input type="password"  name="name" required id="usr_name">
-                    
+                    <input type="text"  name="name" required id="usr_name_r">
+
                     <label for="uname"><b>Эл.почта</b></label>
-                    <input type="email"  name="uname" required id="usr_email">
+                    <input type="email"  name="uname" required id="usr_email_r">
 
                     <label for="psw"><b>Пароль</b></label>
-                    <input type="password"  name="psw" required id="usr_pwd">
+                    <input type="password"  name="psw" required id="usr_pwd_r">
+
+                    <label for="psw_r"><b>Пароль повторно</b></label>
+                    <input type="password"  name="psw_r" required id="usr_pwd_r_r">
 
 
 
