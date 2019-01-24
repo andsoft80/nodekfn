@@ -8,7 +8,7 @@ https = require('https');
 https.createServer({
     key: privateKey,
     cert: certificate
-}, app).listen(80);
+}, app).listen(443);
 var bodyParser = require('body-parser');
 var aesjs = require('aes-js');
 var formidable = require('formidable');
