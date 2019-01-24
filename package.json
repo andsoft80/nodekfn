@@ -11,6 +11,7 @@
     "author": "ands6ft",
     "contributors": [],
     "dependencies": {
+        "yandex-money-sdk": "0.1.7",
         "cors": "2.8.5",
         "cluster": "0.7.7",
         "redis": "2.8.0",

@@ -2,8 +2,10 @@ var express = require("express");
 var fs = require('fs');
 var app = express();
 var cors = require('cors');
-var privateKey = fs.readFileSync( 'privkey.pem' );
-var certificate = fs.readFileSync( 'cert.pem' );
+var yandexMoney = require("yandex-money-sdk");
+
+var privateKey = fs.readFileSync('privkey.pem');
+var certificate = fs.readFileSync('cert.pem');
 https = require('https');
 
 https.createServer({
@@ -857,8 +859,7 @@ app.post("/adduser", function (request, response) {
         if (err) {
             parcel.err = err;
 
-        }
-        else{
+        } else {
             parcel.auth = 'ok';
         }
 
@@ -991,6 +992,48 @@ app.post("/logout", function (request, response) {
     }
     response.write(JSON.stringify('session destroy'));
     response.end();
+
+});
+
+
+var clientId = '29095C51B47A1750BE1CD55CC3B0AC933173962D142BAEE9291F25BB1A2C8572';
+var redirectURI = 'https://kakar.ru/oauth';
+var clientSecret = 'CAECC2FA329E1C7D32390A1C96BB5827B22CA8316B05D01598F983AA1FD4EF3F32C2F6072C3E7CECE3DEBEACD9354D8042B6311DA9D37A6834086428254A0000';
+var scope = ['account-info'];
+
+app.post("/yandex_auth", function (request, response) {
+
+    var url = yandexMoney.Wallet.buildObtainTokenUrl(clientId, redirectURI, scope);
+    console.log(url);
+//    response.writeHead(301, {
+//        'Location': url
+//                //add other headers here...
+//    });
+    response.write(url);
+    response.end();
+    
+
+
+
+});
+
+app.get("/oauth", function (request, response) {
+    var code = request.query.code;
+    
+    function tokenComplete(err, data) {
+        if (err) {
+            // process error
+        }
+        
+        var access_token = data.access_token;
+        response.write(access_token);
+        response.end();
+    }
+    yandexMoney.Wallet.getAccessToken(clientId, code, redirectURI, clientSecret,
+            tokenComplete);
+
+
+
 
 });
 

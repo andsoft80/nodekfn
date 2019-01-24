@@ -437,7 +437,7 @@
 //            var tarr = [];
 //            var marr = [];
             var currPlayData = null;
-            
+
             var currUserEmail = null;
             function getFileBinary(filename) {
                 var res = null;
@@ -628,11 +628,11 @@
                     success: function (data) {
                         var parcel = JSON.parse(data);
                         if (parcel.email !== 'empty') {
-                            
+
                             afterLogin(parcel.email, parcel.name);
                         } else {
                             afterLogout();
-                            
+
                         }
                     }
                 });
@@ -653,18 +653,28 @@
                 $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> АВТОРИЗАЦИЯ');
                 currUserEmail = null;
             }
-            
-            
-            function buyCoins(){
-                if(currUserEmail){
+
+
+            function buyCoins() {
+                if (currUserEmail) {
                     alert(currUserEmail);
                 }
 
             }
-            
-            
-            
-            
+            function yandex_auth() {
+                $.ajax({
+                    type: "post",
+                    //                                    async: false,
+                    url: host + "yandex_auth",
+                    success: function (data) {
+                        window.location.replace(data);
+
+                    }
+                });
+            }
+
+
+
             function addFiles(playFileName) {
 
                 function filePlay(playFileName) {
@@ -1272,6 +1282,7 @@
                         <ul>
                             <li><a href="#" onClick = 'login();'>Войти</a></li>
                             <li><a href="#" onClick = 'registration();'>Регистрация</a></li>
+                            <li><a href="#" onClick = 'yandex_auth();'>Яндекс Деньги</a></li>
                             <!--                            <li class="divider"></li>
                                                         <li><a href="#">Item 3</a></li>-->
                         </ul>
@@ -1280,6 +1291,7 @@
                         <ul>
                             <li><a href="#" onClick = 'login();'>Войти</a></li>
                             <li><a href="#" onClick = 'registration();'>Регистрация</a></li>
+                            <li><a href="#" onClick = 'yandex_auth();'>Яндекс Деньги</a></li>
                             <!--                            <li class="divider"></li>
                                                         <li><a href="#">Item 3</a></li>-->
                         </ul>
