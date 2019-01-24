@@ -624,6 +624,7 @@
                     type: "post",
                     //                                    async: false,
                     url: host + "getauth",
+                    headers: {"Access-Control-Allow-Origin": "*"},
                     success: function (data) {
                         var parcel = JSON.parse(data);
                         if (parcel.email !== 'empty') {
