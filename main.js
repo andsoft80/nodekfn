@@ -1,6 +1,14 @@
 var express = require("express");
 var fs = require('fs');
 var app = express();
+var privateKey = fs.readFileSync( 'privkey.pem' );
+var certificate = fs.readFileSync( 'cert.pem' );
+https = require('https');
+
+https.createServer({
+    key: privateKey,
+    cert: certificate
+}, app).listen(80);
 var bodyParser = require('body-parser');
 var aesjs = require('aes-js');
 var formidable = require('formidable');
@@ -1349,7 +1357,7 @@ app.get("/check", function (request, response) {
 });
 
 
-app.listen(8080);
+//app.listen(8080);
 
 
 
