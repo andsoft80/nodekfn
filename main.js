@@ -1,6 +1,7 @@
 var express = require("express");
 var fs = require('fs');
 var app = express();
+var cors = require('cors');
 var privateKey = fs.readFileSync( 'privkey.pem' );
 var certificate = fs.readFileSync( 'cert.pem' );
 https = require('https');
@@ -13,6 +14,7 @@ var bodyParser = require('body-parser');
 var aesjs = require('aes-js');
 var formidable = require('formidable');
 var path = require('path');
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static('ass'));
