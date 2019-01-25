@@ -288,9 +288,9 @@
 
                                 fn = fn + slash + fileName;
                                 $('#jsi-nav').data('sidebar').pull();
-                                buysong();
-                                $().JqueryFunction(fn);
                                 $scope.noty.close();
+                                buysong();
+
                             },
                         }
                     }).show();
@@ -440,6 +440,7 @@
             var currPlayData = null;
 
             var currUserEmail = null;
+            var currUserName = null;
             function getFileBinary(filename) {
                 var res = null;
                 $.ajax({
@@ -648,6 +649,7 @@
 
                 $('#basic').html($('#logon').html());
                 currUserEmail = email;
+                currUserName = name;
                 controllerScope.$apply();
 
             }
@@ -655,6 +657,7 @@
                 $('#basic').html($('#login').html());
                 $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> АВТОРИЗАЦИЯ');
                 currUserEmail = null;
+                currUserName = null;
             }
 
 
@@ -669,8 +672,15 @@
                     type: "post",
                     url: host + "buysong",
                     success: function (data) {
-                        alert(data);
-
+                        var parcel = JSON.parse(data);
+                        if (parcel.result === 'ok') {
+                            $().JqueryFunction(fn);
+                            
+                            
+                            $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + currUserName +
+                                    '<img src = "ym.png" width="40" height="40" style = "vertical-align: middle">' +
+                                    getCoins());
+                        }
                     }
                 });
             }
