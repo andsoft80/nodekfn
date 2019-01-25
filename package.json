@@ -11,6 +11,8 @@
     "author": "ands6ft",
     "contributors": [],
     "dependencies": {
+        "node-http-proxy": "0.2.3",
+        "request": "2.88.0",
         "yandex-money-sdk": "0.1.7",
         "cors": "2.8.5",
         "cluster": "0.7.7",

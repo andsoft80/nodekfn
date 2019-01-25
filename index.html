@@ -37,7 +37,7 @@
         <script>
             ////////////////////////////////////////////
 
-            var host = 'https://kakar.ru/';
+            var host = 'https://localhost:443/';
 
 
 
@@ -288,6 +288,7 @@
 
                                 fn = fn + slash + fileName;
                                 $('#jsi-nav').data('sidebar').pull();
+                                buysong();
                                 $().JqueryFunction(fn);
                                 $scope.noty.close();
                             },
@@ -641,7 +642,9 @@
                 var controllerElement = document.querySelector('body');
                 var controllerScope = angular.element(controllerElement).scope();
                 controllerScope.coins = getCoins();
-                $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + name + ' Счет: ' + getCoins() + ' монет');
+                $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + name +
+                        '<img src = "ym.png" width="40" height="40" style = "vertical-align: middle">' +
+                        getCoins());
 
                 $('#basic').html($('#logon').html());
                 currUserEmail = email;
@@ -661,10 +664,26 @@
                 }
 
             }
-            function yandex_auth() {
+            function buysong() {
                 $.ajax({
                     type: "post",
-                    //                                    async: false,
+                    url: host + "buysong",
+                    success: function (data) {
+                        alert(data);
+
+                    }
+                });
+            }
+            function yandex_auth() {
+                if (!currUserEmail) {
+                    alert('Вы не авторизованы! Выполните вход...');
+                    return;
+                }
+                var parcel = {};
+                parcel.email = currUserEmail;
+                $.ajax({
+                    type: "post",
+                    data: parcel,
                     url: host + "yandex_auth",
                     success: function (data) {
                         window.location.replace(data);
@@ -1282,7 +1301,7 @@
                         <ul>
                             <li><a href="#" onClick = 'login();'>Войти</a></li>
                             <li><a href="#" onClick = 'registration();'>Регистрация</a></li>
-                            <li><a href="#" onClick = 'yandex_auth();'>Яндекс Деньги</a></li>
+
                             <!--                            <li class="divider"></li>
                                                         <li><a href="#">Item 3</a></li>-->
                         </ul>
@@ -1291,14 +1310,15 @@
                         <ul>
                             <li><a href="#" onClick = 'login();'>Войти</a></li>
                             <li><a href="#" onClick = 'registration();'>Регистрация</a></li>
-                            <li><a href="#" onClick = 'yandex_auth();'>Яндекс Деньги</a></li>
+
                             <!--                            <li class="divider"></li>
                                                         <li><a href="#">Item 3</a></li>-->
                         </ul>
                     </div>
                     <div class="dropdown-menu dropdown-anchor-top-left dropdown-has-anchor" id="logon">
                         <ul>
-                            <li><a href="#" onClick = 'buyCoins();'>Купить монеты</a></li>
+                            <li><a href="#" onClick = 'yandex_auth();'>Подключить Яндекс Деньги</a></li>
+                            <!--<li><a href="#" onClick = 'buyCoins();'>Купить монеты</a></li>-->
                             <li><a href="#" onClick = 'logOut();'>Выйти</a></li>
 
                         </ul>

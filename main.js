@@ -3,15 +3,23 @@ var fs = require('fs');
 var app = express();
 var cors = require('cors');
 var yandexMoney = require("yandex-money-sdk");
+var request_mod = require('request');
+var song_cost = 2;
+
+httpProxy = require('http-proxy');
 
 var privateKey = fs.readFileSync('privkey.pem');
 var certificate = fs.readFileSync('cert.pem');
 https = require('https');
 
+
 https.createServer({
     key: privateKey,
     cert: certificate
 }, app).listen(443);
+
+
+
 var bodyParser = require('body-parser');
 var aesjs = require('aes-js');
 var formidable = require('formidable');
@@ -33,7 +41,7 @@ var salt = bcrypt.genSaltSync(10);
 var secret = 'death666';
 var mysql = require('mysql');
 
-var redisHost = '185.220.35.146';
+var redisHost = 'localhost';
 var mySqlHost = '185.220.35.146';
 
 
@@ -947,25 +955,32 @@ app.post("/recover", function (request, response) {
 });
 
 app.post("/getcoins", function (request, response) {
-    var curruser = request.session.user;
+    var token = request.session.yandexMoneyToken;
+
     var parcel = {};
-    if (typeof curruser !== 'undefined') {
+    if (typeof token !== 'undefined' & token !== '') {
 
-        var sql = "select * from users where email = '" + curruser + "'";
-        con.query(sql, function (err, result) {
-            if (err)
-                throw err;
+        var api = new yandexMoney.Wallet(token);
 
-            if (result[0].coins) {
-                parcel.coins = result[0].coins;
+        api.accountInfo(function infoComplete(err, data) {
 
-            } else {
-                parcel.coins = 0;
-
+            if (err) {
+                console.log(err);
+                parcel.coins = 'Не подключен';
+                response.write(JSON.stringify(parcel));
+                response.end();
+                return;
             }
+
+            parcel.coins = data.balance_details.available;
             response.write(JSON.stringify(parcel));
             response.end();
+
         });
+    } else {
+        parcel.coins = 'Не подключен';
+        response.write(JSON.stringify(parcel));
+        response.end();
     }
 
 
@@ -986,6 +1001,75 @@ app.post("/getauth", function (request, response) {
 
 });
 
+app.post("/buysong", function (request, response) {
+    var token = request.session.yandexMoneyToken;
+
+    var parcel = {};
+    if (typeof token !== 'undefined' & token !== '') {
+
+        var api = new yandexMoney.Wallet(token);
+
+        api.accountInfo(function infoComplete(err, data) {
+
+            if (err) {
+
+                parcel.result = err;
+                response.write(JSON.stringify(parcel));
+                response.end();
+                return;
+            }
+            var balance = data.balance_details.available;
+            if (balance < song_cost) {
+                parcel.result = 'no_money';
+                response.write(JSON.stringify(parcel));
+                response.end();
+
+            } else {
+                var options = {
+                    "pattern_id": "p2p",
+                    "to": "41001134815319",
+                    "amount_due": song_cost,
+                    "comment": "Оплата за песню в онлайн караоке",
+                    "message": "Оплата за песню в онлайн караоке",
+                    "label": "Оплата за песню в онлайн караоке"
+
+                };
+                api.requestPayment(options, function requestComplete(err, data) {
+                    if (err) {
+                        // process error
+                    }
+                    if (data.status !== "success") {
+                        // process failure
+                    }
+                    var request_id = data.request_id;
+
+                    api.processPayment({
+                        "request_id": request_id
+                    }, processComplete);
+                });
+
+                function processComplete(err, data) {
+                    if (err) {
+                        parcel.result = err;
+                        response.write(JSON.stringify(parcel));
+                        response.end();
+                    }
+                    parcel.result = 'ok';
+                    response.write(JSON.stringify(parcel));
+                    response.end();
+                }
+            }
+
+
+        });
+    } else {
+        parcel.result = 'no_yandex';
+        response.write(JSON.stringify(parcel));
+        response.end();
+    }
+
+});
+
 app.post("/logout", function (request, response) {
     if (request.session) {
         request.session.destroy(function () {});
@@ -997,41 +1081,70 @@ app.post("/logout", function (request, response) {
 
 
 var clientId = '29095C51B47A1750BE1CD55CC3B0AC933173962D142BAEE9291F25BB1A2C8572';
-var redirectURI = 'https://kakar.ru/oauth';
+var redirectURI = 'https://localhost/oauth';
 var clientSecret = 'CAECC2FA329E1C7D32390A1C96BB5827B22CA8316B05D01598F983AA1FD4EF3F32C2F6072C3E7CECE3DEBEACD9354D8042B6311DA9D37A6834086428254A0000';
-var scope = ['account-info'];
+var scope = ['account-info', 'operation-history', 'payment.to-account("41001134815319")'];
+
+
+
 
 app.post("/yandex_auth", function (request, response) {
 
     var url = yandexMoney.Wallet.buildObtainTokenUrl(clientId, redirectURI, scope);
     console.log(url);
+
 //    response.writeHead(301, {
 //        'Location': url
 //                //add other headers here...
 //    });
     response.write(url);
     response.end();
-    
+
 
 
 
 });
 
+
+
 app.get("/oauth", function (request, response) {
     var code = request.query.code;
-    
-    function tokenComplete(err, data) {
-        if (err) {
-            // process error
-        }
-        
-        var access_token = data.access_token;
-        response.write(access_token);
-        response.end();
-    }
-    yandexMoney.Wallet.getAccessToken(clientId, code, redirectURI, clientSecret,
-            tokenComplete);
 
+    request_mod.post({
+        "url": "https://money.yandex.ru/oauth/token",
+        "form": {
+            "code": code,
+            "client_id": clientId,
+            "grant_type": "authorization_code",
+            "redirect_uri": redirectURI,
+            "client_secret": clientSecret
+        }
+    }, function (error, res, body) {
+        var body_json = JSON.parse(body);
+
+
+        request.session.yandexMoneyToken = body_json.access_token;
+        var api = new yandexMoney.Wallet(body_json.access_token);
+
+        api.accountInfo(function infoComplete(err, data) {
+            if (err) {
+                // process error
+            }
+            fs.readFile("index.html", function (error, data) {
+                if (error) {
+                    console.log(error);
+                    response.write(JSON.stringify(error));
+                    response.end();
+                    return;
+                }
+                response.redirect('/');
+                response.write(data);
+                response.end();
+
+            });
+        });
+    }
+    );
 
 
 
