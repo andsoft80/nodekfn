@@ -1,4 +1,4 @@
-var host = 'localhost';
+var host = '185.220.35.146';
 var mySqlHost = '185.220.35.146';
 var port = 8080;
 var express = require("express");
@@ -1521,7 +1521,7 @@ app.get("/check", function (request, response) {
 });
 
 
-
+app.listen(8080);
 
 
 
