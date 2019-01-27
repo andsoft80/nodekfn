@@ -77,6 +77,8 @@ var jobs = kue.createQueue({
 //        }
         port: 6379,
         host: '185.220.35.146'
+        
+        
     }
 });
 
@@ -1308,7 +1310,7 @@ app.get("/check", function (request, response) {
 });
 
 
-app.listen(80);
+app.listen(8080);
 
 
 
