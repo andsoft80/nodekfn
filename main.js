@@ -1,10 +1,33 @@
+var host = 'localhost';
+var mySqlHost = '185.220.35.146';
+var port = 8080;
 var express = require("express");
 var fs = require('fs');
 var app = express();
+var cors = require('cors');
+var yandexMoney = require("yandex-money-sdk");
+var request_mod = require('request');
+var song_cost = 2;
+
+//httpProxy = require('http-proxy');
+//
+//var privateKey = fs.readFileSync('privkey.pem');
+//var certificate = fs.readFileSync('cert.pem');
+//https = require('https');
+//
+//
+//https.createServer({
+//    key: privateKey,
+//    cert: certificate
+//}, app).listen(443);
+
+
+
 var bodyParser = require('body-parser');
 var aesjs = require('aes-js');
 var formidable = require('formidable');
 var path = require('path');
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static('ass'));
@@ -21,18 +44,54 @@ var salt = bcrypt.genSaltSync(10);
 var secret = 'death666';
 var mysql = require('mysql');
 
+var redisHost = host;
+
+
+
 var con = mysql.createConnection({
-    host: "185.220.35.146",
+    host: mySqlHost,
     user: "user",
     password: "user",
     database: "karplay"
 });
-
 con.connect(function (err) {
     if (err)
         throw err;
     console.log("Connected!");
 });
+var mySqlConnect = function () {
+    con.on('error', function (err) {
+
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+
+
+
+            console.log("MySQL lost connection. Reconnect...");
+
+            con = mysql.createConnection({
+                host: mySqlHost,
+                user: "user",
+                password: "user",
+                database: "karplay"
+            });
+            con.connect(function (err) {
+                if (err)
+                    throw err;
+                console.log("Connected!");
+            });
+            mySqlConnect();
+        }
+
+
+
+    });
+};
+mySqlConnect();
+//con.connect(function (err) {
+//    if (err)
+//        throw err;
+//    console.log("Connected!");
+//});
 var mailer = require("nodemailer");
 var smtpTransport = mailer.createTransport({
     service: "Gmail",
@@ -45,7 +104,7 @@ var smtpTransport = mailer.createTransport({
 
 
 var sessionStore = new MySQLStore({
-    
+
     clearExpired: true,
     // How frequently expired sessions will be cleared; milliseconds:
     checkExpirationInterval: 20000000,
@@ -76,7 +135,8 @@ var jobs = kue.createQueue({
 //            return app.redisClient;
 //        }
         port: 6379,
-        host: '185.220.35.146'
+        host: redisHost
+      
         
         
     }
@@ -805,15 +865,19 @@ app.post("/adduser", function (request, response) {
     var email = request.body.email;
     var name = request.body.name;
     var pwd = request.body.pwd;
-
+    parcel = {};
 
     var hash = bcrypt.hashSync(pwd, salt);
     var sql = "insert into users (email, name, pwd) values ('" + email + "','" + name + "','" + hash + "')";
     con.query(sql, function (err, result) {
-        if (err)
-            throw err;
+        if (err) {
+            parcel.err = err;
 
-        response.write(JSON.stringify(result));
+        } else {
+            parcel.auth = 'ok';
+        }
+
+        response.write(JSON.stringify(parcel));
         response.end();
     });
 
@@ -897,25 +961,32 @@ app.post("/recover", function (request, response) {
 });
 
 app.post("/getcoins", function (request, response) {
-    var curruser = request.session.user;
+    var token = request.session.yandexMoneyToken;
+
     var parcel = {};
-    if (typeof curruser !== 'undefined') {
+    if (typeof token !== 'undefined' & token !== '') {
 
-        var sql = "select * from users where email = '" + curruser + "'";
-        con.query(sql, function (err, result) {
-            if (err)
-                throw err;
+        var api = new yandexMoney.Wallet(token);
 
-            if (result[0].coins) {
-                parcel.coins = result[0].coins;
+        api.accountInfo(function infoComplete(err, data) {
 
-            } else {
-                parcel.coins = 0;
-
+            if (err) {
+                console.log(err);
+                parcel.coins = 'Не подключен';
+                response.write(JSON.stringify(parcel));
+                response.end();
+                return;
             }
+
+            parcel.coins = data.balance_details.available;
             response.write(JSON.stringify(parcel));
             response.end();
+
         });
+    } else {
+        parcel.coins = 'Не подключен';
+        response.write(JSON.stringify(parcel));
+        response.end();
     }
 
 
@@ -936,12 +1007,152 @@ app.post("/getauth", function (request, response) {
 
 });
 
+app.post("/buysong", function (request, response) {
+    var token = request.session.yandexMoneyToken;
+
+    var parcel = {};
+    if (typeof token !== 'undefined' & token !== '') {
+
+        var api = new yandexMoney.Wallet(token);
+
+        api.accountInfo(function infoComplete(err, data) {
+
+            if (err) {
+
+                parcel.result = err;
+                response.write(JSON.stringify(parcel));
+                response.end();
+                return;
+            }
+            var balance = data.balance_details.available;
+            if (balance < song_cost) {
+                parcel.result = 'no_money';
+                response.write(JSON.stringify(parcel));
+                response.end();
+
+            } else {
+                var options = {
+                    "pattern_id": "p2p",
+                    "to": "41001134815319",
+                    "amount_due": song_cost,
+                    "comment": "Оплата за песню в онлайн караоке",
+                    "message": "Оплата за песню в онлайн караоке",
+                    "label": "Оплата за песню в онлайн караоке"
+
+                };
+                api.requestPayment(options, function requestComplete(err, data) {
+                    if (err) {
+                        // process error
+                    }
+                    if (data.status !== "success") {
+                        // process failure
+                    }
+                    var request_id = data.request_id;
+
+                    api.processPayment({
+                        "request_id": request_id
+                    }, processComplete);
+                });
+
+                function processComplete(err, data) {
+                    if (err) {
+                        parcel.result = err;
+                        response.write(JSON.stringify(parcel));
+                        response.end();
+                    }
+                    parcel.result = 'ok';
+                    response.write(JSON.stringify(parcel));
+                    response.end();
+                }
+            }
+
+
+        });
+    } else {
+        parcel.result = 'no_yandex';
+        response.write(JSON.stringify(parcel));
+        response.end();
+    }
+
+});
+
 app.post("/logout", function (request, response) {
     if (request.session) {
         request.session.destroy(function () {});
     }
     response.write(JSON.stringify('session destroy'));
     response.end();
+
+});
+
+
+var clientId = '29095C51B47A1750BE1CD55CC3B0AC933173962D142BAEE9291F25BB1A2C8572';
+var redirectURI = host+'/oauth';
+var clientSecret = 'CAECC2FA329E1C7D32390A1C96BB5827B22CA8316B05D01598F983AA1FD4EF3F32C2F6072C3E7CECE3DEBEACD9354D8042B6311DA9D37A6834086428254A0000';
+var scope = ['account-info', 'operation-history', 'payment.to-account("41001134815319")'];
+
+
+
+
+app.post("/yandex_auth", function (request, response) {
+
+    var url = yandexMoney.Wallet.buildObtainTokenUrl(clientId, redirectURI, scope);
+    console.log(url);
+
+//    response.writeHead(301, {
+//        'Location': url
+//                //add other headers here...
+//    });
+    response.write(url);
+    response.end();
+
+
+
+
+});
+
+
+
+app.get("/oauth", function (request, response) {
+    var code = request.query.code;
+
+    request_mod.post({
+        "url": "https://money.yandex.ru/oauth/token",
+        "form": {
+            "code": code,
+            "client_id": clientId,
+            "grant_type": "authorization_code",
+            "redirect_uri": redirectURI,
+            "client_secret": clientSecret
+        }
+    }, function (error, res, body) {
+        var body_json = JSON.parse(body);
+
+
+        request.session.yandexMoneyToken = body_json.access_token;
+        var api = new yandexMoney.Wallet(body_json.access_token);
+
+        api.accountInfo(function infoComplete(err, data) {
+            if (err) {
+                // process error
+            }
+            fs.readFile("index.html", function (error, data) {
+                if (error) {
+                    console.log(error);
+                    response.write(JSON.stringify(error));
+                    response.end();
+                    return;
+                }
+                response.redirect('/');
+                response.write(data);
+                response.end();
+
+            });
+        });
+    }
+    );
+
+
 
 });
 
@@ -1188,11 +1399,11 @@ jobs.process('new_job_hex', function (job, done) {
 });
 
 function newJobBin(res, filename) {
-    var id = ''+Math.random();
-    
-    var job = jobs.create("new_job", {res_id:id, filename: filename});
+    var id = '' + Math.random();
+
+    var job = jobs.create("new_job", {res_id: id, filename: filename});
     job.save();
-     responses[id] = res;
+    responses[id] = res;
 }
 
 app.get("/getfilebin/:filename", function (request, response) {
@@ -1214,13 +1425,13 @@ app.get("/getfilebin/:filename", function (request, response) {
 });
 
 app.get("/getfilehex/:filename", function (request, response) {
-    var id = ''+Math.random();
+    var id = '' + Math.random();
     if (process.platform !== 'win32') {
         filename = request.params.filename.replace(/\\/g, "/");
     } else {
         filename = request.params.filename;
     }
-    var job = jobs.create('new_job_hex', {res_id:id, filename: filename});
+    var job = jobs.create('new_job_hex', {res_id: id, filename: filename});
     job.save();
     responses[id] = response;
 
@@ -1310,7 +1521,7 @@ app.get("/check", function (request, response) {
 });
 
 
-app.listen(8080);
+
 
 
 
