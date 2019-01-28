@@ -1009,6 +1009,13 @@ app.post("/getauth", function (request, response) {
 });
 
 app.post("/buysong", function (request, response) {
+    
+                    ////////////////////////////////заглушка
+                    parcel.result = 'ok';
+                    response.write(JSON.stringify(parcel));
+                    response.end();
+                    return;
+                    ///////////////////////////////    
     var token = request.session.yandexMoneyToken;
 
     var parcel = {};
@@ -1042,12 +1049,7 @@ app.post("/buysong", function (request, response) {
 
                 };
                 api.requestPayment(options, function requestComplete(err, data) {
-                    ////////////////////////////////заглушка
-                    parcel.result = 'ok';
-                    response.write(JSON.stringify(parcel));
-                    response.end();
-                    return;
-                    ///////////////////////////////
+
                     if (err) {
                         // process error
                     }
