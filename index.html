@@ -643,8 +643,8 @@
                 var controllerElement = document.querySelector('body');
                 var controllerScope = angular.element(controllerElement).scope();
                 controllerScope.coins = getCoins();
-                $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + name +
-                        '<img src = "ym.png" width="40" height="40" style = "vertical-align: middle">' +
+                $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + name + ' ' +
+                        '<img src = "ym.png" width="40" height="40" style = "vertical-align: middle" title="Яндекс Кошелек">' + ' ' +
                         getCoins());
 
                 $('#basic').html($('#logon').html());
@@ -675,12 +675,19 @@
                         var parcel = JSON.parse(data);
                         if (parcel.result === 'ok') {
                             $().JqueryFunction(fn);
-                            
-                            
-                            $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + currUserName +
-                                    '<img src = "ym.png" width="40" height="40" style = "vertical-align: middle">' +
+
+
+                            $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + currUserName + ' ' +
+                                    '<img src = "ym.png" width="40" height="40" style = "vertical-align: middle" title="Яндекс Кошелек">' + ' ' +
                                     getCoins());
+                        } else if (parcel.result === 'no_yandex') {
+                            alert('Яндекс Деньги не подключены!');
+
+                        } else if (parcel.result === 'no_money') {
+                            alert('Не достаточно денег для проигрывания песни! Пополните кошелек...');
+
                         }
+
                     }
                 });
             }
@@ -1287,6 +1294,23 @@
                 background: silver;
                 padding:  10px;
             }
+
+            #song_cost{
+                color: white;
+
+                font-weight: bold;
+
+                font-size: 120px;
+                text-shadow: 1px 1px 1px #000;
+            }
+            #song_lab{
+                color: white;
+
+                font-weight: bold;
+
+                font-size: 30px;
+                text-shadow: 1px 1px 1px #000;
+            }
         </style>
 
     </head>
@@ -1332,8 +1356,23 @@
                             <li><a href="#" onClick = 'logOut();'>Выйти</a></li>
 
                         </ul>
-                    </div>                    
+                    </div>    
+
+
+                    <div>
+                        <div id="song_cost">
+                            <p><i class="fa fa-rub" aria-hidden="true"></i>2</p>
+                        </div>
+                        <div id="song_lab">
+                            стоимость песни 
+                        </div>
+
+                    </div>
+
                 </div>
+
+
+
 
                 <!--<div id="wait"><img src="http://68.183.69.229:3000/wait.gif"></div>-->
                 <p id="text">                

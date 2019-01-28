@@ -1,5 +1,6 @@
 var host = '185.220.35.146';
 var mySqlHost = '185.220.35.146';
+var redirectHost = 'http://localhost';
 var port = 8080;
 var express = require("express");
 var fs = require('fs');
@@ -1047,6 +1048,7 @@ app.post("/buysong", function (request, response) {
                     if (data.status !== "success") {
                         // process failure
                     }
+                    console.log(JSON.stringify(data));
                     var request_id = data.request_id;
 
                     api.processPayment({
@@ -1060,6 +1062,7 @@ app.post("/buysong", function (request, response) {
                         response.write(JSON.stringify(parcel));
                         response.end();
                     }
+                    console.log(JSON.stringify(data));
                     parcel.result = 'ok';
                     response.write(JSON.stringify(parcel));
                     response.end();
@@ -1087,7 +1090,7 @@ app.post("/logout", function (request, response) {
 
 
 var clientId = '29095C51B47A1750BE1CD55CC3B0AC933173962D142BAEE9291F25BB1A2C8572';
-var redirectURI = host+'/oauth';
+var redirectURI = redirectHost+':'+port+'/oauth';
 var clientSecret = 'CAECC2FA329E1C7D32390A1C96BB5827B22CA8316B05D01598F983AA1FD4EF3F32C2F6072C3E7CECE3DEBEACD9354D8042B6311DA9D37A6834086428254A0000';
 var scope = ['account-info', 'operation-history', 'payment.to-account("41001134815319")'];
 
@@ -1521,7 +1524,7 @@ app.get("/check", function (request, response) {
 });
 
 
-app.listen(8080);
+app.listen(port);
 
 
 
