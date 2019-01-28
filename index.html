@@ -37,9 +37,9 @@
         <script>
             ////////////////////////////////////////////
 
-//            var host = 'https://localhost:443/';
+            var host = 'http://localhost:8080/';
 
-            var host = 'http://kakar.ru:80/';
+            // var host = 'http://kakar.ru:80/';
 
 
 
@@ -252,7 +252,7 @@
 //                            $scope.$apply();
 //                        }
 //                    });
-                    $scope.playList = JSON.parse($scope.list());
+                    $scope.playList = JSON.parse($scope.list_catalog());
                     //$scope.$apply();
 
 
@@ -357,7 +357,24 @@
 
                             trees.close_all();
                             trees.uncheck_all();
+                            ///формируем полный каталог плоский
+                            var selarr = $('#tree').jstree().get_json();
+                            
+                            alert(JSON.stringify(selarr));
+//                            for (var i = 0; i < selarr.length; i++) {
+//                                selnode = selarr[i];
+//                                if (selnode.parent === '#') {
+//                                    continue;
+//                                }
+//                                txt = selnode.text;
+//                                parentTxt = $('#tree').jstree().get_node(selnode.parent).text;
+//
+//                                $scope.playList = JSON.parse($scope.list_add(txt, parentTxt));
+//                                $scope.$apply();
+//                            }
 
+
+                            //////
 
 
 
@@ -1301,7 +1318,7 @@
 
                 font-weight: bold;
 
-                font-size: 120px;
+                font-size: 80px;
                 text-shadow: 1px 1px 1px #000;
             }
             #song_lab{
@@ -1458,10 +1475,51 @@
                 </div>    
             </nav>
             <div id='dialog'>
-                <div id = 'selectSong' >
+                <!--                <div id = 'selectSong' >
+                
+                                    <div id = 'tree'></div>
+                                </div>-->
+                <div>
+                    <form class="d2">
+                        <input ng-model="filter_catalog" type="search" placeholder="Искать песню...">
+                        <!--<button type="submit"></button>-->
+                    </form>
 
-                    <div id = 'tree'></div>
                 </div>
+                <div id = 'twrap2'>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th >
+                                    <input type="checkbox"/>
+                                </th>
+                                <th style = 'width:45%'>Название песни</th>
+                                <th style = 'width:25%'>Артист</th>
+
+
+                            </tr>
+                        </thead>
+                        <tbody >
+                            <tr ng-repeat="song in playList| filter:{
+                                        name:filter
+                                    }">
+                                <td >
+                                    <input type="checkbox"/>
+                                </td>
+                                <td ><div>{{song.name}}</div></td>
+                                <td >{{song.artist}}</td>
+                                <!--                                <td >  
+                                                                    <a href='#'><i class="fa fa-arrow-up" aria-hidden="true" title='Поднять вверх' ng-click="list_up(song.id)"></i></a>
+                                                                    <a href='#'><i class="fa fa-arrow-down" aria-hidden="true" title='Опустить вниз' ng-click="list_down(song.id)"></i></a>
+                                                                    <a href='#'><i class="fa fa-trash" aria-hidden="true" title='Удалить из списка' ng-click="list_delete(song.id)"></i></a>
+                                                                    <a href='#'><i class="fa fa-play" aria-hidden="true" title='Начать петь' ng-click="play(song.name, song.artist, song.id);self = true"></i></a>
+                                                                </td>-->
+
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>    
 
             </div>
             <div id='loginDialog'>
