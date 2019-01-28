@@ -676,10 +676,11 @@
                         if (parcel.result === 'ok') {
                             $().JqueryFunction(fn);
 
-
-                            $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + currUserName + ' ' +
-                                    '<img src = "ym.png" width="40" height="40" style = "vertical-align: middle" title="Яндекс Кошелек">' + ' ' +
-                                    getCoins());
+                            if (currUserName) {
+                                $('#amu').html('<i class="fa fa-user" aria-hidden="true"></i> ' + currUserName + ' ' +
+                                        '<img src = "ym.png" width="40" height="40" style = "vertical-align: middle" title="Яндекс Кошелек">' + ' ' +
+                                        getCoins());
+                            }
                         } else if (parcel.result === 'no_yandex') {
                             alert('Яндекс Деньги не подключены!');
 
