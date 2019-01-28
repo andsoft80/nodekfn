@@ -1,7 +1,7 @@
 var host = '185.220.35.146';
 var mySqlHost = '185.220.35.146';
-var redirectHost = 'http://localhost';
-var port = 8080;
+var redirectHost = 'http://kakar.ru';
+var port = 80;
 var express = require("express");
 var fs = require('fs');
 var app = express();
@@ -137,9 +137,9 @@ var jobs = kue.createQueue({
 //        }
         port: 6379,
         host: redisHost
-      
-        
-        
+
+
+
     }
 });
 
@@ -1042,6 +1042,12 @@ app.post("/buysong", function (request, response) {
 
                 };
                 api.requestPayment(options, function requestComplete(err, data) {
+                    ////////////////////////////////заглушка
+                    parcel.result = 'ok';
+                    response.write(JSON.stringify(parcel));
+                    response.end();
+                    return;
+                    ///////////////////////////////
                     if (err) {
                         // process error
                     }
@@ -1090,7 +1096,7 @@ app.post("/logout", function (request, response) {
 
 
 var clientId = '29095C51B47A1750BE1CD55CC3B0AC933173962D142BAEE9291F25BB1A2C8572';
-var redirectURI = redirectHost+':'+port+'/oauth';
+var redirectURI = redirectHost + ':' + port + '/oauth';
 var clientSecret = 'CAECC2FA329E1C7D32390A1C96BB5827B22CA8316B05D01598F983AA1FD4EF3F32C2F6072C3E7CECE3DEBEACD9354D8042B6311DA9D37A6834086428254A0000';
 var scope = ['account-info', 'operation-history', 'payment.to-account("410018593739203")'];
 
