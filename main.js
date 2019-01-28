@@ -1009,16 +1009,18 @@ app.post("/getauth", function (request, response) {
 });
 
 app.post("/buysong", function (request, response) {
-    
-                    ////////////////////////////////заглушка
-                    parcel.result = 'ok';
-                    response.write(JSON.stringify(parcel));
-                    response.end();
-                    return;
-                    ///////////////////////////////    
+
+
     var token = request.session.yandexMoneyToken;
 
     var parcel = {};
+
+    ////////////////////////////////заглушка
+    parcel.result = 'ok';
+    response.write(JSON.stringify(parcel));
+    response.end();
+    return;
+    ///////////////////////////////   
     if (typeof token !== 'undefined' & token !== '') {
 
         var api = new yandexMoney.Wallet(token);
