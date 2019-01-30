@@ -1,4 +1,4 @@
-var host = 'localhost';
+var host = '185.220.35.146';
 var mySqlHost = '185.220.35.146';
 var redirectHost = 'http://kakar.ru';
 var port = 8080;

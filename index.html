@@ -37,9 +37,9 @@
         <script>
             ////////////////////////////////////////////
 
-            var host = 'http://localhost:8080/';
+            //var host = 'http://localhost:8080/';
 
-            //var host = 'http://kakar.ru:80/';
+            var host = 'http://kakar.ru:80/';
 
 
 
@@ -51,6 +51,7 @@
                 $scope.noty = null;
                 $scope.self = false;
                 $scope.coins = 0;
+                $scope.filter_catalog = null;
 
                 $scope.reBuildSeq = function (listjson) {
 
@@ -357,7 +358,7 @@
 
 //                            trees.close_all();
 //                            trees.uncheck_all();
-                           
+
 
 
 
@@ -374,7 +375,7 @@
                                     if (el.text.indexOf('.kfn') !== -1) {
                                         list_el.name = el.text;
                                         list_el.artist = '';
-                                        
+
                                         $scope.list_arr.push(list_el);
                                     }
                                 } else {
@@ -383,7 +384,7 @@
                                         var el_ch = el.children[j];
                                         list_el.name = el_ch.text;
                                         list_el.artist = el.text;
-                                        
+
                                         $scope.list_arr.push(list_el);
                                     }
                                 }
@@ -394,7 +395,9 @@
                         }
                     });
                     var mh = document.body.clientHeight;
-
+                    $scope.all = false;
+                    $scope.filter_catalog = null;
+                    $("#filter_cat").val('');
                     $("#dialog").dialog({
                         width: 500,
                         maxHeight: mh - 4,
@@ -405,29 +408,38 @@
                             {
                                 text: "OK",
                                 click: function () {
-                                    selarr = $('#tree').jstree().get_selected(true);
-                                    //alert(JSON.stringify(selarr));
-                                    for (var i = 0; i < selarr.length; i++) {
-                                        selnode = selarr[i];
-                                        if (selnode.parent === '#') {
-                                            continue;
-                                        }
-                                        txt = selnode.text;
-                                        parentTxt = $('#tree').jstree().get_node(selnode.parent).text;
-//                                        parcel = {"filename": txt, "artist": parentTxt};
-//                                        $.ajax({
-//                                            type: "post",
-//                                            async: false,
-//                                            data: parcel,
-//                                            url: "http://192.168.0.28:8080/list_add",
-//                                            success: function (data) {
-//                                                $scope.playList = JSON.parse(data);
-//                                                $scope.$apply();
-//                                            }
-//                                        });
-                                        $scope.playList = JSON.parse($scope.list_add(txt, parentTxt));
-                                        $scope.$apply();
-                                    }
+//                                    selarr = $('#tree').jstree().get_selected(true);
+//                                    //alert(JSON.stringify(selarr));
+//                                    for (var i = 0; i < selarr.length; i++) {
+//                                        selnode = selarr[i];
+//                                        if (selnode.parent === '#') {
+//                                            continue;
+//                                        }
+//                                        txt = selnode.text;
+//                                        parentTxt = $('#tree').jstree().get_node(selnode.parent).text;
+////                                        parcel = {"filename": txt, "artist": parentTxt};
+////                                        $.ajax({
+////                                            type: "post",
+////                                            async: false,
+////                                            data: parcel,
+////                                            url: "http://192.168.0.28:8080/list_add",
+////                                            success: function (data) {
+////                                                $scope.playList = JSON.parse(data);
+////                                                $scope.$apply();
+////                                            }
+////                                        });
+//                                        $scope.playList = JSON.parse($scope.list_add(txt, parentTxt));
+//                                        $scope.$apply();
+//                                    }
+
+                                    $("#selector:checked").each(function () {
+                                        
+                                         var txt = $(this).parent("td").parent("tr").find("td").eq(1).text();
+                                         var parentTxt = $(this).parent("td").parent("tr").find("td").eq(2).text();
+                                         $scope.playList = JSON.parse($scope.list_add(txt, parentTxt));
+                                         $scope.$apply();
+                                         
+                                    });
                                     $(this).dialog("close");
                                 }
                             }
@@ -1054,6 +1066,19 @@
 
             }////конец главной функции      
             ;
+
+            function filterChange(val) {
+                var controllerElement = document.querySelector('body');
+                var controllerScope = angular.element(controllerElement).scope();
+                if (val !== '') {
+                    controllerScope.filter_catalog = val;
+                    controllerScope.$apply();
+
+                } else {
+                    controllerScope.filter_catalog = null;
+                    controllerScope.$apply();
+                }
+            }
             function load() {
                 getAuth();
                 //$('#progressb').hide();
@@ -1496,13 +1521,13 @@
                                 </div>-->
                 <div>
                     <form class="d2">
-                        <input ng-model="filter_catalog" type="search" placeholder="Искать песню..." >
+                        <input  id = 'filter_cat' type="search" placeholder="Искать песню..." oninput="filterChange(this.value)">
                         <!--<button type="submit"></button>-->
                     </form>
 
                 </div>
                 <div id = 'twrap2'>
-                    <table>
+                    <table id = 'catalog_table'>
                         <thead>
                             <tr>
                                 <th >
@@ -1519,7 +1544,7 @@
                                         name:filter_catalog
                                     }">
                                 <td >
-                                    <input type="checkbox" ng-click="select()"  ng-checked="all" />
+                                    <input id = 'selector' type="checkbox" ng-click="select()"  ng-checked="all" />
                                 </td>
                                 <td ><div>{{song.name}}</div></td>
                                 <td >{{song.artist}}</td>
