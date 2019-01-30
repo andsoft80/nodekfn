@@ -242,6 +242,13 @@
 
 
                 }
+                $scope.list_catalog = function () {
+                    var listjson = '';
+                    var pl = localStorage.getItem('playList');
+
+                    listjson = JSON.parse(pl);
+                    return listjson;
+                }
                 $scope.getPlayList = function () {
 
 //                    $.ajax({
@@ -433,12 +440,12 @@
 //                                    }
 
                                     $("#selector:checked").each(function () {
-                                        
-                                         var txt = $(this).parent("td").parent("tr").find("td").eq(1).text();
-                                         var parentTxt = $(this).parent("td").parent("tr").find("td").eq(2).text();
-                                         $scope.playList = JSON.parse($scope.list_add(txt, parentTxt));
-                                         $scope.$apply();
-                                         
+
+                                        var txt = $(this).parent("td").parent("tr").find("td").eq(1).text();
+                                        var parentTxt = $(this).parent("td").parent("tr").find("td").eq(2).text();
+                                        $scope.playList = JSON.parse($scope.list_add(txt, parentTxt));
+                                        $scope.$apply();
+
                                     });
                                     $(this).dialog("close");
                                 }
