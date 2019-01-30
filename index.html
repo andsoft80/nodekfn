@@ -37,9 +37,9 @@
         <script>
             ////////////////////////////////////////////
 
-            //var host = 'http://localhost:8080/';
+            var host = 'http://localhost:8080/';
 
-             var host = 'http://kakar.ru:80/';
+            //var host = 'http://kakar.ru:80/';
 
 
 
@@ -335,48 +335,61 @@
                         async: false,
                         url: host + "listinit",
                         success: function (data) {
-//                           alert(data);
+                            //alert(data);
 
-                            trees = $('#tree').jstree({
+//                            trees = $('#tree').jstree({
 
-                                "checkbox": {
-                                    //"keep_selected_style": false
-                                },
-                                "themes": {"stripes": true},
-                                'core': {
-                                    'data': JSON.parse(data)
-                                },
-                                "plugins": [
-                                    "wholerow", "checkbox"
-                                ]
-
-                            });
+//                                "checkbox": {
+//                                    //"keep_selected_style": false
+//                                },
+//                                "themes": {"stripes": true},
+//                                'core': {
+//                                    'data': JSON.parse(data)
+//                                },
+//                                "plugins": [
+//                                    "wholerow", "checkbox"
+//                                ]
+//
+//                            });
 
 //                            tree.defaults.core.data = JSON.parse(data);
 
 
-                            trees.close_all();
-                            trees.uncheck_all();
-                            ///формируем полный каталог плоский
-                            var selarr = $('#tree').jstree().get_json();
-                            
-                            alert(JSON.stringify(selarr));
-//                            for (var i = 0; i < selarr.length; i++) {
-//                                selnode = selarr[i];
-//                                if (selnode.parent === '#') {
-//                                    continue;
-//                                }
-//                                txt = selnode.text;
-//                                parentTxt = $('#tree').jstree().get_node(selnode.parent).text;
-//
-//                                $scope.playList = JSON.parse($scope.list_add(txt, parentTxt));
-//                                $scope.$apply();
-//                            }
+//                            trees.close_all();
+//                            trees.uncheck_all();
+                           
 
 
-                            //////
 
 
+
+                            ///плоский список/////
+                            $scope.list_arr = [];
+
+                            var json_list = JSON.parse(data);
+                            for (var i = 0; i < json_list.length; i++) {
+                                var list_el = {};
+                                var el = json_list[i];
+                                if (el.children.length === 0) {
+                                    if (el.text.indexOf('.kfn') !== -1) {
+                                        list_el.name = el.text;
+                                        list_el.artist = '';
+                                        
+                                        $scope.list_arr.push(list_el);
+                                    }
+                                } else {
+                                    for (var j = 0; j < el.children.length; j++) {
+                                        var list_el = {};
+                                        var el_ch = el.children[j];
+                                        list_el.name = el_ch.text;
+                                        list_el.artist = el.text;
+                                        
+                                        $scope.list_arr.push(list_el);
+                                    }
+                                }
+                            }
+
+                            ///////////////////////
 
                         }
                     });
@@ -704,9 +717,8 @@
                         } else if (parcel.result === 'no_money') {
                             alert('Не достаточно денег для проигрывания песни! Пополните кошелек...');
 
-                        }
-                        else{
-                            alert('Неопределенная ошибка: '+parcel.result);
+                        } else {
+                            alert('Неопределенная ошибка: ' + parcel.result);
                         }
 
                     }
@@ -1484,7 +1496,7 @@
                                 </div>-->
                 <div>
                     <form class="d2">
-                        <input ng-model="filter_catalog" type="search" placeholder="Искать песню...">
+                        <input ng-model="filter_catalog" type="search" placeholder="Искать песню..." >
                         <!--<button type="submit"></button>-->
                     </form>
 
@@ -1494,7 +1506,7 @@
                         <thead>
                             <tr>
                                 <th >
-                                    <input type="checkbox"/>
+                                    <input type="checkbox" ng-model="all"/>
                                 </th>
                                 <th style = 'width:45%'>Название песни</th>
                                 <th style = 'width:25%'>Артист</th>
@@ -1503,11 +1515,11 @@
                             </tr>
                         </thead>
                         <tbody >
-                            <tr ng-repeat="song in playList| filter:{
-                                        name:filter
+                            <tr ng-repeat="song in list_arr| filter:{
+                                        name:filter_catalog
                                     }">
                                 <td >
-                                    <input type="checkbox"/>
+                                    <input type="checkbox" ng-click="select()"  ng-checked="all" />
                                 </td>
                                 <td ><div>{{song.name}}</div></td>
                                 <td >{{song.artist}}</td>
