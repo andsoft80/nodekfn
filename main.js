@@ -1,7 +1,7 @@
-var host = 'localhost';
+var host = '185.220.35.146';
 var mySqlHost = '185.220.35.146';
 var redirectHost = 'http://kakar.ru';
-var port = 8080;
+var port = 80;
 var express = require("express");
 var fs = require('fs');
 var app = express();
@@ -1016,10 +1016,10 @@ app.post("/buysong", function (request, response) {
     var parcel = {};
 
     ////////////////////////////////заглушка
-    parcel.result = 'ok';
-    response.write(JSON.stringify(parcel));
-    response.end();
-    return;
+//    parcel.result = 'ok';
+//    response.write(JSON.stringify(parcel));
+//    response.end();
+//    return;
     ///////////////////////////////   
     if (typeof token !== 'undefined' & token !== '') {
 
@@ -1043,7 +1043,7 @@ app.post("/buysong", function (request, response) {
             } else {
                 var options = {
                     "pattern_id": "p2p",
-                    "to": "41001134815319",
+                    "to": "410018593739203",
                     "amount_due": song_cost,
                     "comment": "Оплата за песню в онлайн караоке",
                     "message": "Оплата за песню в онлайн караоке",
@@ -1053,10 +1053,16 @@ app.post("/buysong", function (request, response) {
                 api.requestPayment(options, function requestComplete(err, data) {
 
                     if (err) {
-                        // process error
+                        parcel.result = err;
+                        response.write(JSON.stringify(parcel));
+                        response.end();
+                        return;
                     }
                     if (data.status !== "success") {
-                        // process failure
+                        parcel.result = data.status;
+                        response.write(JSON.stringify(parcel));
+                        response.end();
+                        return;
                     }
                     console.log(JSON.stringify(data));
                     var request_id = data.request_id;
@@ -1071,6 +1077,7 @@ app.post("/buysong", function (request, response) {
                         parcel.result = err;
                         response.write(JSON.stringify(parcel));
                         response.end();
+                        return;
                     }
                     console.log(JSON.stringify(data));
                     parcel.result = 'ok';

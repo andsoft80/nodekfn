@@ -37,9 +37,9 @@
         <script>
             ////////////////////////////////////////////
 
-            var host = 'http://localhost:8080/';
+            //var host = 'http://localhost:8080/';
 
-            // var host = 'http://kakar.ru:80/';
+             var host = 'http://kakar.ru:80/';
 
 
 
@@ -704,6 +704,9 @@
                         } else if (parcel.result === 'no_money') {
                             alert('Не достаточно денег для проигрывания песни! Пополните кошелек...');
 
+                        }
+                        else{
+                            alert('Неопределенная ошибка: '+parcel.result);
                         }
 
                     }
