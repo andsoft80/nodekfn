@@ -1,7 +1,7 @@
-var host = 'localhost';
+var host = '185.220.35.146';
 var mySqlHost = '185.220.35.146';
 var redirectHost = 'http://kakar.ru';
-var port = 8080;
+var port = 80;
 var express = require("express");
 var fs = require('fs');
 var app = express();
@@ -136,7 +136,8 @@ var jobs = kue.createQueue({
 //            return app.redisClient;
 //        }
         port: 6379,
-        host: redisHost
+        host: redisHost,
+        auth: 'death666'
 
 
 
