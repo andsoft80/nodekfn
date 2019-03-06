@@ -297,7 +297,7 @@
                                 fn = fn + slash + fileName;
                                 $('#jsi-nav').data('sidebar').pull();
                                 $scope.noty.close();
-                                buysong();
+                                buysong(true);//true если бесплатно
 
                             },
                         }
@@ -716,7 +716,12 @@
                 }
 
             }
-            function buysong() {
+            function buysong(free) {
+                if(free){
+                    $().JqueryFunction(fn);
+                    return;
+                }
+                
                 $.ajax({
                     type: "post",
                     url: host + "buysong",
